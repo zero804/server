@@ -221,6 +221,6 @@ return [
 
 	// A list of plugin files to execute
 	'plugins' => [
-		'build/.phan/plugins/SqlInjectionCheckerPlugin.php',
+//		'build/.phan/plugins/SqlInjectionCheckerPlugin.php',
 	],
 ];

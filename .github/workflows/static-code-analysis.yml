@@ -1,0 +1,13 @@
+name: Static code analysis
+
+on: [pull_request]
+
+jobs:
+    static-code-analysis:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@master
+            - name: Phan
+              uses: docker://jakzal/phpqa:php7.4-alpine
+              with:
+                  args: phan -k build/.phan/config.php
