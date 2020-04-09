@@ -25,6 +25,7 @@
 		:class="{ 'with-app-sidebar': app}"
 		:content-class="{ 'icon-loading': loadingList }"
 		:navigation-class="{ 'icon-loading': loading }">
+		<!-- Categories & filters -->
 		<AppNavigation>
 			<ul id="appscategories">
 				<AppNavigationItem
@@ -86,9 +87,13 @@
 					:title="t('settings', 'Developer documentation') + ' ↗'" />
 			</ul>
 		</AppNavigation>
+
+		<!-- Apps list -->
 		<AppContent class="app-settings-content" :class="{ 'icon-loading': loadingList }">
 			<AppList :category="category" :app="app" :search="searchQuery" />
 		</AppContent>
+
+		<!-- Selected app details -->
 		<AppSidebar
 			v-if="id && app"
 			v-bind="appSidebar"
@@ -97,7 +102,9 @@
 			<template v-if="!appSidebar.background" #header>
 				<div class="app-sidebar-header__figure--default-app-icon icon-settings-dark" />
 			</template>
+
 			<template #primary-actions>
+				<!-- Featured/Supported badges -->
 				<div v-if="app.level === 300 || app.level === 200 || hasRating" class="app-level">
 					<span v-if="app.level === 300"
 						v-tooltip.auto="t('settings', 'This app is supported via your current Nextcloud subscription.')"
@@ -109,48 +116,51 @@
 						{{ t('settings', 'Featured') }}</span>
 					<AppScore v-if="hasRating" :score="app.appstoreData.ratingOverall" />
 				</div>
+
+				<!-- Actions buttons -->
+				<div class="app-actions">
+					<input v-if="app.update"
+						class="update primary"
+						type="button"
+						:value="t('settings', 'Update to {version}', { version: app.update })"
+						:disabled="installing || isLoading"
+						@click="update(app.id)">
+					<input v-if="app.canUnInstall"
+						class="uninstall"
+						type="button"
+						:value="t('settings', 'Remove')"
+						:disabled="installing || isLoading"
+						@click="remove(app.id)">
+					<input v-if="app.active"
+						class="enable"
+						type="button"
+						:value="t('settings','Disable')"
+						:disabled="installing || isLoading"
+						@click="disable(app.id)">
+					<input v-if="!app.active && (app.canInstall || app.isCompatible)"
+						v-tooltip.auto="enableButtonTooltip"
+						class="enable primary"
+						type="button"
+						:value="enableButtonText"
+						:disabled="!app.canInstall || installing || isLoading"
+						@click="enable(app.id)">
+					<input v-else-if="!app.active"
+						v-tooltip.auto="forceEnableButtonTooltip"
+						class="enable force"
+						type="button"
+						:value="forceEnableButtonText"
+						:disabled="installing || isLoading"
+						@click="forceEnable(app.id)">
+				</div>
 			</template>
-			<template #secondary-actions>
-				<ActionButton v-if="app.update"
-					:disabled="installing || isLoading"
-					icon="icon-download"
-					@click="update(app.id)">
-					{{ t('settings', 'Update to {version}', {version: app.update}) }}
-				</ActionButton>
-				<ActionButton v-if="app.canUnInstall"
-					:disabled="installing || isLoading"
-					icon="icon-delete"
-					@click="remove(app.id)">
-					{{ t('settings', 'Remove') }}
-				</ActionButton>
-				<ActionButton v-if="app.active"
-					:disabled="installing || isLoading"
-					icon="icon-close"
-					@click="disable(app.id)">
-					{{ t('settings','Disable') }}
-				</ActionButton>
-				<ActionButton v-if="!app.active && (app.canInstall || app.isCompatible)"
-					v-tooltip.auto="enableButtonTooltip"
-					:disabled="!app.canInstall || installing || isLoading"
-					icon="icon-checkmark"
-					@click="enable(app.id)">
-					{{ enableButtonText }}
-				</ActionButton>
-				<ActionButton v-else-if="!app.active"
-					v-tooltip.auto="forceEnableButtonTooltip"
-					:disabled="installing || isLoading"
-					icon="icon-checkmark"
-					@click="forceEnable(app.id)">
-					{{ forceEnableButtonText }}
-				</ActionButton>
-			</template>
-			<AppDetails :category="category" :app="app" />
+
+			<!-- Tab content -->
+			<AppDetails :app="app" />
 		</AppSidebar>
 	</Content>
 </template>
 
 <script>
-import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import AppContent from '@nextcloud/vue/dist/Components/AppContent'
 import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
 import AppNavigationCounter from '@nextcloud/vue/dist/Components/AppNavigationCounter'
@@ -164,13 +174,14 @@ import VueLocalStorage from 'vue-localstorage'
 import AppList from '../components/AppList'
 import AppDetails from '../components/AppDetails'
 import AppManagement from '../mixins/AppManagement'
+import AppScore from '../components/AppList/AppScore'
 
 Vue.use(VueLocalStorage)
 
 export default {
 	name: 'Apps',
+
 	components: {
-		ActionButton,
 		AppContent,
 		AppDetails,
 		AppList,
@@ -178,10 +189,13 @@ export default {
 		AppNavigationCounter,
 		AppNavigationItem,
 		AppNavigationSpacer,
+		AppScore,
 		AppSidebar,
 		Content,
 	},
+
 	mixins: [AppManagement],
+
 	props: {
 		category: {
 			type: String,
@@ -192,11 +206,14 @@ export default {
 			default: '',
 		},
 	},
+
 	data() {
 		return {
 			searchQuery: '',
+			screenshotLoaded: false,
 		}
 	},
+
 	computed: {
 		loading() {
 			return this.$store.getters.loading('categories')
@@ -220,6 +237,10 @@ export default {
 			return this.$store.getters.getServerData
 		},
 
+		hasRating() {
+			return this.app.appstoreData && this.app.appstoreData.ratingNumOverall > 5
+		},
+
 		// sidebar app binding
 		appSidebar() {
 			const author = Array.isArray(this.app.author)
@@ -235,20 +256,33 @@ export default {
 
 			return {
 				subtitle,
-				background: this.app.screenshot
+				background: this.app.screenshot && this.screenshotLoaded
 					? this.app.screenshot
 					: this.app.preview,
-				compact: !this.app.screenshot,
+				compact: !(this.app.screenshot && this.screenshotLoaded),
 				title: this.app.name,
 
 			}
 		},
 	},
+
 	watch: {
-		category: function(val, old) {
+		category(val, old) {
 			this.setSearch('')
 		},
+
+		app() {
+			this.screenshotLoaded = false
+			if (this.app && this.app.screenshot) {
+				const image = new Image()
+				image.onload = (e) => {
+					this.screenshotLoaded = true
+				}
+				image.src = this.app.screenshot
+			}
+		},
 	},
+
 	beforeMount() {
 		this.$store.dispatch('getCategories')
 		this.$store.dispatch('getAllApps')
@@ -261,6 +295,7 @@ export default {
 		 */
 		this.appSearch = new OCA.Search(this.setSearch, this.resetSearch)
 	},
+
 	methods: {
 		setSearch(query) {
 			this.searchQuery = query
@@ -307,12 +342,22 @@ export default {
 		}
 	}
 
-	// allow multi line subtitle for the license
-	.app-sidebar-header__subtitle {
-		white-space: pre-line !important;
-		line-height: 16px;
-		overflow: visible !important;
-		height: 22px;
+	// TODO: migrate to components
+	.app-sidebar-header__desc {
+		// allow multi line subtitle for the license
+		.app-sidebar-header__subtitle {
+			white-space: normal !important;
+			line-height: 16px;
+			overflow: visible !important;
+			height: auto;
+		}
+	}
+
+	.app-sidebar-header__action {
+		flex-direction: column;
+		input {
+			margin: 3px;
+		}
 	}
 }
 

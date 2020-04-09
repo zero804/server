@@ -312,56 +312,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./apps/settings/src/components/AppManagement.vue":
-/*!********************************************************!*\
-  !*** ./apps/settings/src/components/AppManagement.vue ***!
-  \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _AppManagement_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AppManagement.vue?vue&type=script&lang=js& */ "./apps/settings/src/components/AppManagement.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
-var render, staticRenderFns
-
-
-
-
-/* normalize component */
-
-var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_1__["default"])(
-  _AppManagement_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"],
-  render,
-  staticRenderFns,
-  false,
-  null,
-  null,
-  null
-  
-)
-
-/* hot reload */
-if (false) { var api; }
-component.options.__file = "apps/settings/src/components/AppManagement.vue"
-/* harmony default export */ __webpack_exports__["default"] = (component.exports);
-
-/***/ }),
-
-/***/ "./apps/settings/src/components/AppManagement.vue?vue&type=script&lang=js&":
-/*!*********************************************************************************!*\
-  !*** ./apps/settings/src/components/AppManagement.vue?vue&type=script&lang=js& ***!
-  \*********************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_AppManagement_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib!../../../../node_modules/vue-loader/lib??vue-loader-options!./AppManagement.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/components/AppManagement.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_AppManagement_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
-
-/***/ }),
-
 /***/ "./apps/settings/src/components/PrefixMixin.vue":
 /*!******************************************************!*\
   !*** ./apps/settings/src/components/PrefixMixin.vue ***!
@@ -462,6 +412,205 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./apps/settings/src/mixins/AppManagement.js":
+/*!***************************************************!*\
+  !*** ./apps/settings/src/mixins/AppManagement.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * @copyright Copyright (c) 2019 Julius Härtl <jus@bitgrid.net>
+ *
+ * @author Julius Härtl <jus@bitgrid.net>
+ * @author John Molakvoæ <skjnldsv@protonmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/* harmony default export */ __webpack_exports__["default"] = ({
+  computed: {
+    appGroups: function appGroups() {
+      return this.app.groups.map(function (group) {
+        return {
+          id: group,
+          name: group
+        };
+      });
+    },
+    installing: function installing() {
+      return this.$store.getters.loading('install');
+    },
+    isLoading: function isLoading() {
+      return this.app && this.$store.getters.loading(this.app.id);
+    },
+    enableButtonText: function enableButtonText() {
+      if (this.app.needsDownload) {
+        return t('settings', 'Download and enable');
+      }
+
+      return t('settings', 'Enable');
+    },
+    forceEnableButtonText: function forceEnableButtonText() {
+      if (this.app.needsDownload) {
+        return t('settings', 'Enable untested app');
+      }
+
+      return t('settings', 'Enable untested app');
+    },
+    enableButtonTooltip: function enableButtonTooltip() {
+      if (this.app.needsDownload) {
+        return t('settings', 'The app will be downloaded from the app store');
+      }
+
+      return false;
+    },
+    forceEnableButtonTooltip: function forceEnableButtonTooltip() {
+      var base = t('settings', 'This app is not marked as compatible with your Nextcloud version. If you continue you will still be able to install the app. Note that the app might not work as expected.');
+
+      if (this.app.needsDownload) {
+        return base + ' ' + t('settings', 'The app will be downloaded from the app store');
+      }
+
+      return base;
+    }
+  },
+  data: function data() {
+    return {
+      groupCheckedAppsData: false
+    };
+  },
+  mounted: function mounted() {
+    if (this.app && this.app.groups && this.app.groups.length > 0) {
+      this.groupCheckedAppsData = true;
+    }
+  },
+  methods: {
+    asyncFindGroup: function asyncFindGroup(query) {
+      return this.$store.dispatch('getGroups', {
+        search: query,
+        limit: 5,
+        offset: 0
+      });
+    },
+    isLimitedToGroups: function isLimitedToGroups(app) {
+      if (this.app.groups.length || this.groupCheckedAppsData) {
+        return true;
+      }
+
+      return false;
+    },
+    setGroupLimit: function setGroupLimit() {
+      if (!this.groupCheckedAppsData) {
+        this.$store.dispatch('enableApp', {
+          appId: this.app.id,
+          groups: []
+        });
+      }
+    },
+    canLimitToGroups: function canLimitToGroups(app) {
+      if (app.types && app.types.includes('filesystem') || app.types.includes('prelogin') || app.types.includes('authentication') || app.types.includes('logging') || app.types.includes('prevent_group_restriction')) {
+        return false;
+      }
+
+      return true;
+    },
+    addGroupLimitation: function addGroupLimitation(group) {
+      var groups = this.app.groups.concat([]).concat([group.id]);
+      this.$store.dispatch('enableApp', {
+        appId: this.app.id,
+        groups: groups
+      });
+    },
+    removeGroupLimitation: function removeGroupLimitation(group) {
+      var currentGroups = this.app.groups.concat([]);
+      var index = currentGroups.indexOf(group.id);
+
+      if (index > -1) {
+        currentGroups.splice(index, 1);
+      }
+
+      this.$store.dispatch('enableApp', {
+        appId: this.app.id,
+        groups: currentGroups
+      });
+    },
+    forceEnable: function forceEnable(appId) {
+      this.$store.dispatch('forceEnableApp', {
+        appId: appId,
+        groups: []
+      }).then(function (response) {
+        OC.Settings.Apps.rebuildNavigation();
+      }).catch(function (error) {
+        OC.Notification.show(error);
+      });
+    },
+    enable: function enable(appId) {
+      this.$store.dispatch('enableApp', {
+        appId: appId,
+        groups: []
+      }).then(function (response) {
+        OC.Settings.Apps.rebuildNavigation();
+      }).catch(function (error) {
+        OC.Notification.show(error);
+      });
+    },
+    disable: function disable(appId) {
+      this.$store.dispatch('disableApp', {
+        appId: appId
+      }).then(function (response) {
+        OC.Settings.Apps.rebuildNavigation();
+      }).catch(function (error) {
+        OC.Notification.show(error);
+      });
+    },
+    remove: function remove(appId) {
+      this.$store.dispatch('uninstallApp', {
+        appId: appId
+      }).then(function (response) {
+        OC.Settings.Apps.rebuildNavigation();
+      }).catch(function (error) {
+        OC.Notification.show(error);
+      });
+    },
+    install: function install(appId) {
+      this.$store.dispatch('enableApp', {
+        appId: appId
+      }).then(function (response) {
+        OC.Settings.Apps.rebuildNavigation();
+      }).catch(function (error) {
+        OC.Notification.show(error);
+      });
+    },
+    update: function update(appId) {
+      this.$store.dispatch('updateApp', {
+        appId: appId
+      }).then(function (response) {
+        OC.Settings.Apps.rebuildNavigation();
+      }).catch(function (error) {
+        OC.Notification.show(error);
+      });
+    }
+  }
+});
+
+/***/ }),
+
 /***/ "./apps/settings/src/views/Apps.vue":
 /*!******************************************!*\
   !*** ./apps/settings/src/views/Apps.vue ***!
@@ -471,9 +620,11 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Apps_vue_vue_type_template_id_d3714d0a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Apps.vue?vue&type=template&id=d3714d0a& */ "./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&");
+/* harmony import */ var _Apps_vue_vue_type_template_id_d3714d0a_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Apps.vue?vue&type=template&id=d3714d0a&scoped=true& */ "./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&scoped=true&");
 /* harmony import */ var _Apps_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Apps.vue?vue&type=script&lang=js& */ "./apps/settings/src/views/Apps.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* empty/unused harmony star reexport *//* harmony import */ var _Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true& */ "./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
 
 
 
@@ -481,13 +632,13 @@ __webpack_require__.r(__webpack_exports__);
 
 /* normalize component */
 
-var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
   _Apps_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
-  _Apps_vue_vue_type_template_id_d3714d0a___WEBPACK_IMPORTED_MODULE_0__["render"],
-  _Apps_vue_vue_type_template_id_d3714d0a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  _Apps_vue_vue_type_template_id_d3714d0a_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _Apps_vue_vue_type_template_id_d3714d0a_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
   false,
   null,
-  null,
+  "d3714d0a",
   null
   
 )
@@ -513,19 +664,35 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&":
-/*!*************************************************************************!*\
-  !*** ./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a& ***!
-  \*************************************************************************/
+/***/ "./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true&":
+/*!****************************************************************************************************!*\
+  !*** ./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true& ***!
+  \****************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-style-loader!../../../../node_modules/css-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/sass-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib??vue-loader-options!./Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true& */ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true&");
+/* harmony import */ var _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_0__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_0__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_vue_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_sass_loader_dist_cjs_js_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_style_index_0_id_d3714d0a_lang_scss_scoped_true___WEBPACK_IMPORTED_MODULE_0___default.a); 
+
+/***/ }),
+
+/***/ "./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&scoped=true&":
+/*!*************************************************************************************!*\
+  !*** ./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&scoped=true& ***!
+  \*************************************************************************************/
 /*! exports provided: render, staticRenderFns */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_template_id_d3714d0a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../../node_modules/vue-loader/lib??vue-loader-options!./Apps.vue?vue&type=template&id=d3714d0a& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_template_id_d3714d0a___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_template_id_d3714d0a_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../../node_modules/vue-loader/lib??vue-loader-options!./Apps.vue?vue&type=template&id=d3714d0a&scoped=true& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&scoped=true&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_template_id_d3714d0a_scoped_true___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_template_id_d3714d0a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Apps_vue_vue_type_template_id_d3714d0a_scoped_true___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 
@@ -542,14 +709,12 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _nextcloud_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @nextcloud/vue */ "./node_modules/@nextcloud/vue/dist/ncvuecomponents.js");
 /* harmony import */ var _nextcloud_vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_nextcloud_vue__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var marked__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! marked */ "./node_modules/marked/src/marked.js");
+/* harmony import */ var marked__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! marked */ "./node_modules/marked/lib/marked.js");
 /* harmony import */ var marked__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(marked__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var dompurify__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! dompurify */ "./node_modules/dompurify/dist/purify.js");
 /* harmony import */ var dompurify__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(dompurify__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _AppList_AppScore__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AppList/AppScore */ "./apps/settings/src/components/AppList/AppScore.vue");
-/* harmony import */ var _AppManagement__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AppManagement */ "./apps/settings/src/components/AppManagement.vue");
-/* harmony import */ var _PrefixMixin__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./PrefixMixin */ "./apps/settings/src/components/PrefixMixin.vue");
-/* harmony import */ var _SvgFilterMixin__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./SvgFilterMixin */ "./apps/settings/src/components/SvgFilterMixin.vue");
+/* harmony import */ var _mixins_AppManagement__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../mixins/AppManagement */ "./apps/settings/src/mixins/AppManagement.js");
+/* harmony import */ var _PrefixMixin__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./PrefixMixin */ "./apps/settings/src/components/PrefixMixin.vue");
 //
 //
 //
@@ -664,82 +829,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
 
 
 
@@ -748,11 +837,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'AppDetails',
   components: {
-    Multiselect: _nextcloud_vue__WEBPACK_IMPORTED_MODULE_0__["Multiselect"],
-    AppScore: _AppList_AppScore__WEBPACK_IMPORTED_MODULE_3__["default"]
+    Multiselect: _nextcloud_vue__WEBPACK_IMPORTED_MODULE_0__["Multiselect"]
   },
-  mixins: [_AppManagement__WEBPACK_IMPORTED_MODULE_4__["default"], _PrefixMixin__WEBPACK_IMPORTED_MODULE_5__["default"], _SvgFilterMixin__WEBPACK_IMPORTED_MODULE_6__["default"]],
-  props: ['category', 'app'],
+  mixins: [_mixins_AppManagement__WEBPACK_IMPORTED_MODULE_3__["default"], _PrefixMixin__WEBPACK_IMPORTED_MODULE_4__["default"]],
+  props: {
+    app: {
+      type: Object,
+      required: true
+    }
+  },
   data: function data() {
     return {
       groupCheckedAppsData: false
@@ -770,9 +863,6 @@ __webpack_require__.r(__webpack_exports__);
       }
 
       return null;
-    },
-    hasRating: function hasRating() {
-      return this.app.appstoreData && this.app.appstoreData.ratingNumOverall > 5;
     },
     author: function author() {
       if (typeof this.app.author === 'string') {
@@ -1175,7 +1265,7 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _AppScore__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AppScore */ "./apps/settings/src/components/AppList/AppScore.vue");
-/* harmony import */ var _AppManagement__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../AppManagement */ "./apps/settings/src/components/AppManagement.vue");
+/* harmony import */ var _mixins_AppManagement__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../mixins/AppManagement */ "./apps/settings/src/mixins/AppManagement.js");
 /* harmony import */ var _SvgFilterMixin__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../SvgFilterMixin */ "./apps/settings/src/components/SvgFilterMixin.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -1297,7 +1387,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   components: {
     AppScore: _AppScore__WEBPACK_IMPORTED_MODULE_0__["default"]
   },
-  mixins: [_AppManagement__WEBPACK_IMPORTED_MODULE_1__["default"], _SvgFilterMixin__WEBPACK_IMPORTED_MODULE_2__["default"]],
+  mixins: [_mixins_AppManagement__WEBPACK_IMPORTED_MODULE_1__["default"], _SvgFilterMixin__WEBPACK_IMPORTED_MODULE_2__["default"]],
   props: {
     app: {},
     category: {},
@@ -1309,7 +1399,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data: function data() {
     return {
       isSelected: false,
-      scrolled: false
+      scrolled: false,
+      screenshotLoaded: false
     };
   },
   computed: {
@@ -1323,12 +1414,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     }
   },
   mounted: function mounted() {
+    var _this = this;
+
     this.isSelected = this.app.id === this.$route.params.id;
+
+    if (this.app.screenshot) {
+      var image = new Image();
+
+      image.onload = function (e) {
+        _this.screenshotLoaded = true;
+      };
+
+      image.src = this.app.screenshot;
+    }
   },
   watchers: {},
   methods: {
     showAppDetails: function showAppDetails(event) {
-      var _this = this;
+      var _this2 = this;
 
       return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
         return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -1345,11 +1448,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               case 2:
                 _context.prev = 2;
                 _context.next = 5;
-                return _this.$router.push({
+                return _this2.$router.push({
                   name: 'apps-details',
                   params: {
-                    category: _this.category,
-                    id: _this.app.id
+                    category: _this2.category,
+                    id: _this2.app.id
                   }
                 });
 
@@ -1386,6 +1489,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _nextcloud_router__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @nextcloud/router */ "./node_modules/@nextcloud/router/dist/index.js");
+/* harmony import */ var _nextcloud_router__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_nextcloud_router__WEBPACK_IMPORTED_MODULE_0__);
 //
 //
 //
@@ -1411,6 +1516,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'AppScore',
   props: ['score'],
@@ -1418,204 +1524,7 @@ __webpack_require__.r(__webpack_exports__);
     scoreImage: function scoreImage() {
       var score = Math.round(this.score * 10);
       var imageName = 'rating/s' + score + '.svg';
-      return OC.imagePath('core', imageName);
-    }
-  }
-});
-
-/***/ }),
-
-/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/components/AppManagement.vue?vue&type=script&lang=js&":
-/*!*******************************************************************************************************************************************************************!*\
-  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./apps/settings/src/components/AppManagement.vue?vue&type=script&lang=js& ***!
-  \*******************************************************************************************************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* harmony default export */ __webpack_exports__["default"] = ({
-  computed: {
-    appGroups: function appGroups() {
-      return this.app.groups.map(function (group) {
-        return {
-          id: group,
-          name: group
-        };
-      });
-    },
-    loading: function loading() {
-      var self = this;
-      return function (id) {
-        return self.$store.getters.loading(id);
-      };
-    },
-    installing: function installing() {
-      return this.$store.getters.loading('install');
-    },
-    enableButtonText: function enableButtonText() {
-      if (this.app.needsDownload) {
-        return t('settings', 'Download and enable');
-      }
-
-      return t('settings', 'Enable');
-    },
-    forceEnableButtonText: function forceEnableButtonText() {
-      if (this.app.needsDownload) {
-        return t('settings', 'Enable untested app');
-      }
-
-      return t('settings', 'Enable untested app');
-    },
-    enableButtonTooltip: function enableButtonTooltip() {
-      if (this.app.needsDownload) {
-        return t('settings', 'The app will be downloaded from the app store');
-      }
-
-      return false;
-    },
-    forceEnableButtonTooltip: function forceEnableButtonTooltip() {
-      var base = t('settings', 'This app is not marked as compatible with your Nextcloud version. If you continue you will still be able to install the app. Note that the app might not work as expected.');
-
-      if (this.app.needsDownload) {
-        return base + ' ' + t('settings', 'The app will be downloaded from the app store');
-      }
-
-      return base;
-    }
-  },
-  mounted: function mounted() {
-    if (this.app.groups.length > 0) {
-      this.groupCheckedAppsData = true;
-    }
-  },
-  methods: {
-    asyncFindGroup: function asyncFindGroup(query) {
-      return this.$store.dispatch('getGroups', {
-        search: query,
-        limit: 5,
-        offset: 0
-      });
-    },
-    isLimitedToGroups: function isLimitedToGroups(app) {
-      if (this.app.groups.length || this.groupCheckedAppsData) {
-        return true;
-      }
-
-      return false;
-    },
-    setGroupLimit: function setGroupLimit() {
-      if (!this.groupCheckedAppsData) {
-        this.$store.dispatch('enableApp', {
-          appId: this.app.id,
-          groups: []
-        });
-      }
-    },
-    canLimitToGroups: function canLimitToGroups(app) {
-      if (app.types && app.types.includes('filesystem') || app.types.includes('prelogin') || app.types.includes('authentication') || app.types.includes('logging') || app.types.includes('prevent_group_restriction')) {
-        return false;
-      }
-
-      return true;
-    },
-    addGroupLimitation: function addGroupLimitation(group) {
-      var groups = this.app.groups.concat([]).concat([group.id]);
-      this.$store.dispatch('enableApp', {
-        appId: this.app.id,
-        groups: groups
-      });
-    },
-    removeGroupLimitation: function removeGroupLimitation(group) {
-      var currentGroups = this.app.groups.concat([]);
-      var index = currentGroups.indexOf(group.id);
-
-      if (index > -1) {
-        currentGroups.splice(index, 1);
-      }
-
-      this.$store.dispatch('enableApp', {
-        appId: this.app.id,
-        groups: currentGroups
-      });
-    },
-    forceEnable: function forceEnable(appId) {
-      this.$store.dispatch('forceEnableApp', {
-        appId: appId,
-        groups: []
-      }).then(function (response) {
-        OC.Settings.Apps.rebuildNavigation();
-      }).catch(function (error) {
-        OC.Notification.show(error);
-      });
-    },
-    enable: function enable(appId) {
-      this.$store.dispatch('enableApp', {
-        appId: appId,
-        groups: []
-      }).then(function (response) {
-        OC.Settings.Apps.rebuildNavigation();
-      }).catch(function (error) {
-        OC.Notification.show(error);
-      });
-    },
-    disable: function disable(appId) {
-      this.$store.dispatch('disableApp', {
-        appId: appId
-      }).then(function (response) {
-        OC.Settings.Apps.rebuildNavigation();
-      }).catch(function (error) {
-        OC.Notification.show(error);
-      });
-    },
-    remove: function remove(appId) {
-      this.$store.dispatch('uninstallApp', {
-        appId: appId
-      }).then(function (response) {
-        OC.Settings.Apps.rebuildNavigation();
-      }).catch(function (error) {
-        OC.Notification.show(error);
-      });
-    },
-    install: function install(appId) {
-      this.$store.dispatch('enableApp', {
-        appId: appId
-      }).then(function (response) {
-        OC.Settings.Apps.rebuildNavigation();
-      }).catch(function (error) {
-        OC.Notification.show(error);
-      });
-    },
-    update: function update(appId) {
-      this.$store.dispatch('updateApp', {
-        appId: appId
-      }).then(function (response) {
-        OC.Settings.Apps.rebuildNavigation();
-      }).catch(function (error) {
-        OC.Notification.show(error);
-      });
+      return Object(_nextcloud_router__WEBPACK_IMPORTED_MODULE_0__["imagePath"])('core', imageName);
     }
   }
 });
@@ -1742,6 +1651,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue_localstorage__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(vue_localstorage__WEBPACK_IMPORTED_MODULE_8__);
 /* harmony import */ var _components_AppList__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../components/AppList */ "./apps/settings/src/components/AppList.vue");
 /* harmony import */ var _components_AppDetails__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../components/AppDetails */ "./apps/settings/src/components/AppDetails.vue");
+/* harmony import */ var _mixins_AppManagement__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../mixins/AppManagement */ "./apps/settings/src/mixins/AppManagement.js");
+/* harmony import */ var _components_AppList_AppScore__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../components/AppList/AppScore */ "./apps/settings/src/components/AppList/AppScore.vue");
 //
 //
 //
@@ -1839,6 +1750,73 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
 
 
 
@@ -1861,9 +1839,11 @@ vue__WEBPACK_IMPORTED_MODULE_7__["default"].use(vue_localstorage__WEBPACK_IMPORT
     AppNavigationCounter: _nextcloud_vue_dist_Components_AppNavigationCounter__WEBPACK_IMPORTED_MODULE_2___default.a,
     AppNavigationItem: _nextcloud_vue_dist_Components_AppNavigationItem__WEBPACK_IMPORTED_MODULE_3___default.a,
     AppNavigationSpacer: _nextcloud_vue_dist_Components_AppNavigationSpacer__WEBPACK_IMPORTED_MODULE_4___default.a,
+    AppScore: _components_AppList_AppScore__WEBPACK_IMPORTED_MODULE_12__["default"],
     AppSidebar: _nextcloud_vue_dist_Components_AppSidebar__WEBPACK_IMPORTED_MODULE_5___default.a,
     Content: _nextcloud_vue_dist_Components_Content__WEBPACK_IMPORTED_MODULE_6___default.a
   },
+  mixins: [_mixins_AppManagement__WEBPACK_IMPORTED_MODULE_11__["default"]],
   props: {
     category: {
       type: String,
@@ -1876,7 +1856,8 @@ vue__WEBPACK_IMPORTED_MODULE_7__["default"].use(vue_localstorage__WEBPACK_IMPORT
   },
   data: function data() {
     return {
-      searchQuery: ''
+      searchQuery: '',
+      screenshotLoaded: false
     };
   },
   computed: {
@@ -1886,7 +1867,7 @@ vue__WEBPACK_IMPORTED_MODULE_7__["default"].use(vue_localstorage__WEBPACK_IMPORT
     loadingList: function loadingList() {
       return this.$store.getters.loading('list');
     },
-    currentApp: function currentApp() {
+    app: function app() {
       var _this = this;
 
       return this.apps.find(function (app) {
@@ -1904,11 +1885,48 @@ vue__WEBPACK_IMPORTED_MODULE_7__["default"].use(vue_localstorage__WEBPACK_IMPORT
     },
     settings: function settings() {
       return this.$store.getters.getServerData;
+    },
+    hasRating: function hasRating() {
+      return this.app.appstoreData && this.app.appstoreData.ratingNumOverall > 5;
+    },
+    // sidebar app binding
+    appSidebar: function appSidebar() {
+      var author = Array.isArray(this.app.author) ? this.app.author[0]['@value'] ? this.app.author.map(function (author) {
+        return author['@value'];
+      }).join(', ') : this.app.author.join(', ') : this.app.author['@value'] ? this.app.author['@value'] : this.app.author;
+      var license = t('settings', '{license}-licensed', {
+        license: ('' + this.app.licence).toUpperCase()
+      });
+      var subtitle = t('settings', 'by {author}\n{license}', {
+        author: author,
+        license: license
+      });
+      return {
+        subtitle: subtitle,
+        background: this.app.screenshot && this.screenshotLoaded ? this.app.screenshot : this.app.preview,
+        compact: !(this.app.screenshot && this.screenshotLoaded),
+        title: this.app.name
+      };
     }
   },
   watch: {
     category: function category(val, old) {
       this.setSearch('');
+    },
+    app: function app() {
+      var _this2 = this;
+
+      this.screenshotLoaded = false;
+
+      if (this.app && this.app.screenshot) {
+        var image = new Image();
+
+        image.onload = function (e) {
+          _this2.screenshotLoaded = true;
+        };
+
+        image.src = this.app.screenshot;
+      }
     }
   },
   beforeMount: function beforeMount() {
@@ -1943,6 +1961,24 @@ vue__WEBPACK_IMPORTED_MODULE_7__["default"].use(vue_localstorage__WEBPACK_IMPORT
     }
   }
 });
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true&":
+/*!********************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true& ***!
+  \********************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+// Imports
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+exports = ___CSS_LOADER_API_IMPORT___(false);
+// Module
+exports.push([module.i, "#app-sidebar[data-v-d3714d0a]:not(.app-sidebar--without-background) :not(.app-sidebar-header--compact) .app-sidebar-header__figure {\n  background-size: cover;\n}\n#app-sidebar[data-v-d3714d0a]:not(.app-sidebar--without-background) .app-sidebar-header--compact .app-sidebar-header__figure {\n  filter: invert(1);\n  background-size: 32px;\n}\n#app-sidebar[data-v-d3714d0a].app-sidebar--without-background .app-sidebar-header__figure {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n#app-sidebar[data-v-d3714d0a].app-sidebar--without-background .app-sidebar-header__figure--default-app-icon {\n    height: 32px;\n    width: 32px;\n    background-size: 32px;\n}\n#app-sidebar[data-v-d3714d0a] .app-sidebar-header__desc .app-sidebar-header__subtitle {\n  white-space: normal !important;\n  line-height: 16px;\n  overflow: visible !important;\n  height: auto;\n}\n#app-sidebar[data-v-d3714d0a] .app-sidebar-header__action {\n  flex-direction: column;\n}\n#app-sidebar[data-v-d3714d0a] .app-sidebar-header__action input {\n    margin: 3px;\n}\n", ""]);
+// Exports
+module.exports = exports;
+
 
 /***/ }),
 
@@ -2001,257 +2037,7 @@ var render = function() {
     "div",
     { staticStyle: { padding: "20px" }, attrs: { id: "app-details-view" } },
     [
-      _c("h2", [
-        !_vm.app.preview
-          ? _c("div", { staticClass: "icon-settings-dark" })
-          : _vm._e(),
-        _vm._v(" "),
-        _vm.app.previewAsIcon && _vm.app.preview
-          ? _c(
-              "svg",
-              { attrs: { width: "32", height: "32", viewBox: "0 0 32 32" } },
-              [
-                _c("defs", [
-                  _c(
-                    "filter",
-                    { attrs: { id: _vm.filterId } },
-                    [
-                      _c("feColorMatrix", {
-                        attrs: {
-                          in: "SourceGraphic",
-                          type: "matrix",
-                          values: "-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0"
-                        }
-                      })
-                    ],
-                    1
-                  )
-                ]),
-                _vm._v(" "),
-                _c("image", {
-                  staticClass: "app-icon",
-                  attrs: {
-                    x: "0",
-                    y: "0",
-                    width: "32",
-                    height: "32",
-                    preserveAspectRatio: "xMinYMin meet",
-                    filter: _vm.filterUrl,
-                    "xlink:href": _vm.app.preview
-                  }
-                })
-              ]
-            )
-          : _vm._e(),
-        _vm._v("\n\t\t" + _vm._s(_vm.app.name) + "\n\t")
-      ]),
-      _vm._v(" "),
-      _vm.app.screenshot
-        ? _c("img", { attrs: { src: _vm.app.screenshot, width: "100%" } })
-        : _vm._e(),
-      _vm._v(" "),
-      _vm.app.level === 300 || _vm.app.level === 200 || _vm.hasRating
-        ? _c(
-            "div",
-            { staticClass: "app-level" },
-            [
-              _vm.app.level === 300
-                ? _c(
-                    "span",
-                    {
-                      directives: [
-                        {
-                          name: "tooltip",
-                          rawName: "v-tooltip.auto",
-                          value: _vm.t(
-                            "settings",
-                            "This app is supported via your current Nextcloud subscription."
-                          ),
-                          expression:
-                            "t('settings', 'This app is supported via your current Nextcloud subscription.')",
-                          modifiers: { auto: true }
-                        }
-                      ],
-                      staticClass: "supported icon-checkmark-color"
-                    },
-                    [
-                      _vm._v(
-                        "\n\t\t\t" + _vm._s(_vm.t("settings", "Supported"))
-                      )
-                    ]
-                  )
-                : _vm._e(),
-              _vm._v(" "),
-              _vm.app.level === 200
-                ? _c(
-                    "span",
-                    {
-                      directives: [
-                        {
-                          name: "tooltip",
-                          rawName: "v-tooltip.auto",
-                          value: _vm.t(
-                            "settings",
-                            "Featured apps are developed by and within the community. They offer central functionality and are ready for production use."
-                          ),
-                          expression:
-                            "t('settings', 'Featured apps are developed by and within the community. They offer central functionality and are ready for production use.')",
-                          modifiers: { auto: true }
-                        }
-                      ],
-                      staticClass: "official icon-checkmark"
-                    },
-                    [_vm._v("\n\t\t\t" + _vm._s(_vm.t("settings", "Featured")))]
-                  )
-                : _vm._e(),
-              _vm._v(" "),
-              _vm.hasRating
-                ? _c("AppScore", {
-                    attrs: { score: _vm.app.appstoreData.ratingOverall }
-                  })
-                : _vm._e()
-            ],
-            1
-          )
-        : _vm._e(),
-      _vm._v(" "),
-      _vm.author
-        ? _c(
-            "div",
-            { staticClass: "app-author" },
-            [
-              _vm._v("\n\t\t" + _vm._s(_vm.t("settings", "by")) + "\n\t\t"),
-              _vm._l(_vm.author, function(a, index) {
-                return _c("span", { key: index }, [
-                  a["@attributes"] && a["@attributes"]["homepage"]
-                    ? _c(
-                        "a",
-                        { attrs: { href: a["@attributes"]["homepage"] } },
-                        [_vm._v(_vm._s(a["@value"]))]
-                      )
-                    : a["@value"]
-                    ? _c("span", [_vm._v(_vm._s(a["@value"]))])
-                    : _c("span", [_vm._v(_vm._s(a))]),
-                  index + 1 < _vm.author.length
-                    ? _c("span", [_vm._v(", ")])
-                    : _vm._e()
-                ])
-              })
-            ],
-            2
-          )
-        : _vm._e(),
-      _vm._v(" "),
-      _vm.licence
-        ? _c("div", { staticClass: "app-licence" }, [
-            _vm._v("\n\t\t" + _vm._s(_vm.licence) + "\n\t")
-          ])
-        : _vm._e(),
-      _vm._v(" "),
       _c("div", { staticClass: "actions" }, [
-        _c("div", { staticClass: "actions-buttons" }, [
-          _vm.app.update
-            ? _c("input", {
-                staticClass: "update primary",
-                attrs: {
-                  type: "button",
-                  value: _vm.t("settings", "Update to {version}", {
-                    version: _vm.app.update
-                  }),
-                  disabled: _vm.installing || _vm.loading(_vm.app.id)
-                },
-                on: {
-                  click: function($event) {
-                    return _vm.update(_vm.app.id)
-                  }
-                }
-              })
-            : _vm._e(),
-          _vm._v(" "),
-          _vm.app.canUnInstall
-            ? _c("input", {
-                staticClass: "uninstall",
-                attrs: {
-                  type: "button",
-                  value: _vm.t("settings", "Remove"),
-                  disabled: _vm.installing || _vm.loading(_vm.app.id)
-                },
-                on: {
-                  click: function($event) {
-                    return _vm.remove(_vm.app.id)
-                  }
-                }
-              })
-            : _vm._e(),
-          _vm._v(" "),
-          _vm.app.active
-            ? _c("input", {
-                staticClass: "enable",
-                attrs: {
-                  type: "button",
-                  value: _vm.t("settings", "Disable"),
-                  disabled: _vm.installing || _vm.loading(_vm.app.id)
-                },
-                on: {
-                  click: function($event) {
-                    return _vm.disable(_vm.app.id)
-                  }
-                }
-              })
-            : _vm._e(),
-          _vm._v(" "),
-          !_vm.app.active && (_vm.app.canInstall || _vm.app.isCompatible)
-            ? _c("input", {
-                directives: [
-                  {
-                    name: "tooltip",
-                    rawName: "v-tooltip.auto",
-                    value: _vm.enableButtonTooltip,
-                    expression: "enableButtonTooltip",
-                    modifiers: { auto: true }
-                  }
-                ],
-                staticClass: "enable primary",
-                attrs: {
-                  type: "button",
-                  value: _vm.enableButtonText,
-                  disabled:
-                    !_vm.app.canInstall ||
-                    _vm.installing ||
-                    _vm.loading(_vm.app.id)
-                },
-                on: {
-                  click: function($event) {
-                    return _vm.enable(_vm.app.id)
-                  }
-                }
-              })
-            : !_vm.app.active
-            ? _c("input", {
-                directives: [
-                  {
-                    name: "tooltip",
-                    rawName: "v-tooltip.auto",
-                    value: _vm.forceEnableButtonTooltip,
-                    expression: "forceEnableButtonTooltip",
-                    modifiers: { auto: true }
-                  }
-                ],
-                staticClass: "enable force",
-                attrs: {
-                  type: "button",
-                  value: _vm.forceEnableButtonText,
-                  disabled: _vm.installing || _vm.loading(_vm.app.id)
-                },
-                on: {
-                  click: function($event) {
-                    return _vm.forceEnable(_vm.app.id)
-                  }
-                }
-              })
-            : _vm._e()
-        ]),
-        _vm._v(" "),
         _c("div", { staticClass: "app-groups" }, [
           _vm.app.active && _vm.canLimitToGroups(_vm.app)
             ? _c(
@@ -2780,11 +2566,9 @@ var render = function() {
         },
         [
           (_vm.listView && !_vm.app.preview) ||
-          (!_vm.listView && !_vm.app.screenshot)
+          (!_vm.listView && !_vm.screenshotLoaded)
             ? _c("div", { staticClass: "icon-settings-dark" })
-            : _vm._e(),
-          _vm._v(" "),
-          _vm.listView && _vm.app.preview
+            : _vm.listView && _vm.app.preview
             ? _c(
                 "svg",
                 { attrs: { width: "32", height: "32", viewBox: "0 0 32 32" } },
@@ -2822,7 +2606,7 @@ var render = function() {
               )
             : _vm._e(),
           _vm._v(" "),
-          !_vm.listView && _vm.app.screenshot
+          !_vm.listView && _vm.app.screenshot && _vm.screenshotLoaded
             ? _c("img", { attrs: { src: _vm.app.screenshot, width: "100%" } })
             : _vm._e()
         ]
@@ -2916,7 +2700,7 @@ var render = function() {
             ])
           : _vm._e(),
         _vm._v(" "),
-        _vm.loading(_vm.app.id)
+        _vm.isLoading
           ? _c("div", { staticClass: "icon icon-loading-small" })
           : _vm._e(),
         _vm._v(" "),
@@ -2928,7 +2712,7 @@ var render = function() {
                 value: _vm.t("settings", "Update to {update}", {
                   update: _vm.app.update
                 }),
-                disabled: _vm.installing || _vm.loading(_vm.app.id)
+                disabled: _vm.installing || _vm.isLoading
               },
               on: {
                 click: function($event) {
@@ -2945,7 +2729,7 @@ var render = function() {
               attrs: {
                 type: "button",
                 value: _vm.t("settings", "Remove"),
-                disabled: _vm.installing || _vm.loading(_vm.app.id)
+                disabled: _vm.installing || _vm.isLoading
               },
               on: {
                 click: function($event) {
@@ -2962,7 +2746,7 @@ var render = function() {
               attrs: {
                 type: "button",
                 value: _vm.t("settings", "Disable"),
-                disabled: _vm.installing || _vm.loading(_vm.app.id)
+                disabled: _vm.installing || _vm.isLoading
               },
               on: {
                 click: function($event) {
@@ -2988,10 +2772,7 @@ var render = function() {
               attrs: {
                 type: "button",
                 value: _vm.enableButtonText,
-                disabled:
-                  !_vm.app.canInstall ||
-                  _vm.installing ||
-                  _vm.loading(_vm.app.id)
+                disabled: !_vm.app.canInstall || _vm.installing || _vm.isLoading
               },
               on: {
                 click: function($event) {
@@ -3015,7 +2796,7 @@ var render = function() {
               attrs: {
                 type: "button",
                 value: _vm.forceEnableButtonText,
-                disabled: _vm.installing || _vm.loading(_vm.app.id)
+                disabled: _vm.installing || _vm.isLoading
               },
               on: {
                 click: function($event) {
@@ -3063,10 +2844,10 @@ render._withStripped = true
 
 /***/ }),
 
-/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&":
-/*!*******************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a& ***!
-  \*******************************************************************************************************************************************************************************************************/
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&scoped=true&":
+/*!*******************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./apps/settings/src/views/Apps.vue?vue&type=template&id=d3714d0a&scoped=true& ***!
+  \*******************************************************************************************************************************************************************************************************************/
 /*! exports provided: render, staticRenderFns */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -3081,7 +2862,7 @@ var render = function() {
   return _c(
     "Content",
     {
-      class: { "with-app-sidebar": _vm.currentApp },
+      class: { "with-app-sidebar": _vm.app },
       attrs: {
         "app-name": "settings",
         "content-class": { "icon-loading": _vm.loadingList },
@@ -3219,7 +3000,7 @@ var render = function() {
           _c("AppList", {
             attrs: {
               category: _vm.category,
-              app: _vm.currentApp,
+              app: _vm.app,
               search: _vm.searchQuery
             }
           })
@@ -3227,14 +3008,238 @@ var render = function() {
         1
       ),
       _vm._v(" "),
-      _vm.id && _vm.currentApp
+      _vm.id && _vm.app
         ? _c(
             "AppSidebar",
-            { on: { close: _vm.hideAppDetails } },
+            _vm._b(
+              {
+                class: {
+                  "app-sidebar--without-background": !_vm.appSidebar.background
+                },
+                on: { close: _vm.hideAppDetails },
+                scopedSlots: _vm._u(
+                  [
+                    !_vm.appSidebar.background
+                      ? {
+                          key: "header",
+                          fn: function() {
+                            return [
+                              _c("div", {
+                                staticClass:
+                                  "app-sidebar-header__figure--default-app-icon icon-settings-dark"
+                              })
+                            ]
+                          },
+                          proxy: true
+                        }
+                      : null,
+                    {
+                      key: "primary-actions",
+                      fn: function() {
+                        return [
+                          _vm.app.level === 300 ||
+                          _vm.app.level === 200 ||
+                          _vm.hasRating
+                            ? _c(
+                                "div",
+                                { staticClass: "app-level" },
+                                [
+                                  _vm.app.level === 300
+                                    ? _c(
+                                        "span",
+                                        {
+                                          directives: [
+                                            {
+                                              name: "tooltip",
+                                              rawName: "v-tooltip.auto",
+                                              value: _vm.t(
+                                                "settings",
+                                                "This app is supported via your current Nextcloud subscription."
+                                              ),
+                                              expression:
+                                                "t('settings', 'This app is supported via your current Nextcloud subscription.')",
+                                              modifiers: { auto: true }
+                                            }
+                                          ],
+                                          staticClass:
+                                            "supported icon-checkmark-color"
+                                        },
+                                        [
+                                          _vm._v(
+                                            "\n\t\t\t\t\t" +
+                                              _vm._s(
+                                                _vm.t("settings", "Supported")
+                                              )
+                                          )
+                                        ]
+                                      )
+                                    : _vm._e(),
+                                  _vm._v(" "),
+                                  _vm.app.level === 200
+                                    ? _c(
+                                        "span",
+                                        {
+                                          directives: [
+                                            {
+                                              name: "tooltip",
+                                              rawName: "v-tooltip.auto",
+                                              value: _vm.t(
+                                                "settings",
+                                                "Featured apps are developed by and within the community. They offer central functionality and are ready for production use."
+                                              ),
+                                              expression:
+                                                "t('settings', 'Featured apps are developed by and within the community. They offer central functionality and are ready for production use.')",
+                                              modifiers: { auto: true }
+                                            }
+                                          ],
+                                          staticClass: "official icon-checkmark"
+                                        },
+                                        [
+                                          _vm._v(
+                                            "\n\t\t\t\t\t" +
+                                              _vm._s(
+                                                _vm.t("settings", "Featured")
+                                              )
+                                          )
+                                        ]
+                                      )
+                                    : _vm._e(),
+                                  _vm._v(" "),
+                                  _vm.hasRating
+                                    ? _c("AppScore", {
+                                        attrs: {
+                                          score:
+                                            _vm.app.appstoreData.ratingOverall
+                                        }
+                                      })
+                                    : _vm._e()
+                                ],
+                                1
+                              )
+                            : _vm._e(),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "app-actions" }, [
+                            _vm.app.update
+                              ? _c("input", {
+                                  staticClass: "update primary",
+                                  attrs: {
+                                    type: "button",
+                                    value: _vm.t(
+                                      "settings",
+                                      "Update to {version}",
+                                      { version: _vm.app.update }
+                                    ),
+                                    disabled: _vm.installing || _vm.isLoading
+                                  },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.update(_vm.app.id)
+                                    }
+                                  }
+                                })
+                              : _vm._e(),
+                            _vm._v(" "),
+                            _vm.app.canUnInstall
+                              ? _c("input", {
+                                  staticClass: "uninstall",
+                                  attrs: {
+                                    type: "button",
+                                    value: _vm.t("settings", "Remove"),
+                                    disabled: _vm.installing || _vm.isLoading
+                                  },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.remove(_vm.app.id)
+                                    }
+                                  }
+                                })
+                              : _vm._e(),
+                            _vm._v(" "),
+                            _vm.app.active
+                              ? _c("input", {
+                                  staticClass: "enable",
+                                  attrs: {
+                                    type: "button",
+                                    value: _vm.t("settings", "Disable"),
+                                    disabled: _vm.installing || _vm.isLoading
+                                  },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.disable(_vm.app.id)
+                                    }
+                                  }
+                                })
+                              : _vm._e(),
+                            _vm._v(" "),
+                            !_vm.app.active &&
+                            (_vm.app.canInstall || _vm.app.isCompatible)
+                              ? _c("input", {
+                                  directives: [
+                                    {
+                                      name: "tooltip",
+                                      rawName: "v-tooltip.auto",
+                                      value: _vm.enableButtonTooltip,
+                                      expression: "enableButtonTooltip",
+                                      modifiers: { auto: true }
+                                    }
+                                  ],
+                                  staticClass: "enable primary",
+                                  attrs: {
+                                    type: "button",
+                                    value: _vm.enableButtonText,
+                                    disabled:
+                                      !_vm.app.canInstall ||
+                                      _vm.installing ||
+                                      _vm.isLoading
+                                  },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.enable(_vm.app.id)
+                                    }
+                                  }
+                                })
+                              : !_vm.app.active
+                              ? _c("input", {
+                                  directives: [
+                                    {
+                                      name: "tooltip",
+                                      rawName: "v-tooltip.auto",
+                                      value: _vm.forceEnableButtonTooltip,
+                                      expression: "forceEnableButtonTooltip",
+                                      modifiers: { auto: true }
+                                    }
+                                  ],
+                                  staticClass: "enable force",
+                                  attrs: {
+                                    type: "button",
+                                    value: _vm.forceEnableButtonText,
+                                    disabled: _vm.installing || _vm.isLoading
+                                  },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.forceEnable(_vm.app.id)
+                                    }
+                                  }
+                                })
+                              : _vm._e()
+                          ])
+                        ]
+                      },
+                      proxy: true
+                    }
+                  ],
+                  null,
+                  true
+                )
+              },
+              "AppSidebar",
+              _vm.appSidebar,
+              false
+            ),
             [
-              _c("AppDetails", {
-                attrs: { category: _vm.category, app: _vm.currentApp }
-              })
+              _vm._v(" "),
+              _vm._v(" "),
+              _c("AppDetails", { attrs: { app: _vm.app } })
             ],
             1
           )
@@ -3247,6 +3252,27 @@ var staticRenderFns = []
 render._withStripped = true
 
 
+
+/***/ }),
+
+/***/ "./node_modules/vue-style-loader/index.js!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true&":
+/*!****************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-style-loader!./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib??vue-loader-options!./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true& ***!
+  \****************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(/*! !../../../../node_modules/css-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../../node_modules/sass-loader/dist/cjs.js!../../../../node_modules/vue-loader/lib??vue-loader-options!./Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true& */ "./node_modules/css-loader/dist/cjs.js!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/sass-loader/dist/cjs.js!./node_modules/vue-loader/lib/index.js?!./apps/settings/src/views/Apps.vue?vue&type=style&index=0&id=d3714d0a&lang=scss&scoped=true&");
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var add = __webpack_require__(/*! ../../../../node_modules/vue-style-loader/lib/addStylesClient.js */ "./node_modules/vue-style-loader/lib/addStylesClient.js").default
+var update = add("97ae5b22", content, false, {});
+// Hot Module Replacement
+if(false) {}
 
 /***/ }),
 
@@ -3293,4 +3319,4 @@ if(false) {}
 /***/ })
 
 }]);
-//# sourceMappingURL=vue-1.js.map?v=f671351ac5c0180e8d96
+//# sourceMappingURL=vue-1.js.map?v=478a0f30888410dd83fb
