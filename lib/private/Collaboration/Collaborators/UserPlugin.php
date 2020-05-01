@@ -77,12 +77,23 @@ class UserPlugin implements ISearchPlugin {
 		$userGroups = [];
 		if ($this->shareWithGroupOnly) {
 			// Search in all the groups this user is part of
-			$userGroups = $this->groupManager->getUserGroups($this->userSession->getUser());
-			foreach ($userGroups as $userGroup) {
-				$usersInGroup = $userGroup->searchDisplayName($search, $limit, $offset);
-				foreach ($usersInGroup as $user) {
+			$userGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
+
+			$usersTmp = $this->userManager->searchDisplayName($search, $limit, $offset);
+			foreach ($usersTmp as $user) {
+				if (!$user->isEnabled()) {
+					// Ignore disabled users
+					continue;
+				}
+
+				$commonGroups = array_intersect($userGroups, $this->groupManager->getUserGroupIds($user));
+				if (!empty($commonGroups)) {
 					$users[$user->getUID()] = $user;
 				}
+			}
+
+			if (!empty($users)) {
+				$hasMoreResults = true;
 			}
 		} else {
 			// Search in all users
