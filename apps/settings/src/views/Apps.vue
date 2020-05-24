@@ -89,9 +89,10 @@
 		<AppContent class="app-settings-content" :class="{ 'icon-loading': loadingList }">
 			<AppList :category="category" :app="currentApp" :search="searchQuery" />
 		</AppContent>
-		<AppSidebar v-if="id && currentApp" @close="hideAppDetails">
-			<AppDetails :category="category" :app="currentApp" />
-		</AppSidebar>
+		<AppDetails v-if="id && currentApp"
+			:category="category"
+			:app="currentApp"
+			@close="hideAppDetails" />
 	</Content>
 </template>
 
@@ -101,7 +102,6 @@ import AppNavigation from '@nextcloud/vue/dist/Components/AppNavigation'
 import AppNavigationCounter from '@nextcloud/vue/dist/Components/AppNavigationCounter'
 import AppNavigationItem from '@nextcloud/vue/dist/Components/AppNavigationItem'
 import AppNavigationSpacer from '@nextcloud/vue/dist/Components/AppNavigationSpacer'
-import AppSidebar from '@nextcloud/vue/dist/Components/AppSidebar'
 import Content from '@nextcloud/vue/dist/Components/Content'
 import Vue from 'vue'
 import VueLocalStorage from 'vue-localstorage'
@@ -121,7 +121,6 @@ export default {
 		AppNavigationCounter,
 		AppNavigationItem,
 		AppNavigationSpacer,
-		AppSidebar,
 		Content,
 	},
 	props: {

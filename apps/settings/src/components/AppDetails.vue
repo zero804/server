@@ -21,189 +21,217 @@
   -->
 
 <template>
-	<div id="app-details-view" style="padding: 20px;">
-		<h2>
-			<div v-if="!app.preview" class="icon-settings-dark" />
-			<svg v-if="app.previewAsIcon && app.preview"
-				width="32"
-				height="32"
-				viewBox="0 0 32 32">
-				<defs><filter :id="filterId"><feColorMatrix in="SourceGraphic" type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0" /></filter></defs>
-				<image x="0"
-					y="0"
+	<AppSidebar :title="''" @close="$emit('close')">
+		<template #header>
+			<h2>
+				<div v-if="!app.preview" class="icon-settings-dark" />
+				<svg v-if="app.previewAsIcon && app.preview"
 					width="32"
 					height="32"
-					preserveAspectRatio="xMinYMin meet"
-					:filter="filterUrl"
-					:xlink:href="app.preview"
-					class="app-icon" />
-			</svg>
-			{{ app.name }}
-		</h2>
-		<img v-if="app.screenshot" :src="app.screenshot" width="100%">
-		<div v-if="app.level === 300 || app.level === 200 || hasRating" class="app-level">
-			<span v-if="app.level === 300"
-				v-tooltip.auto="t('settings', 'This app is supported via your current Nextcloud subscription.')"
-				class="supported icon-checkmark-color">
-				{{ t('settings', 'Supported') }}</span>
-			<span v-if="app.level === 200"
-				v-tooltip.auto="t('settings', 'Featured apps are developed by and within the community. They offer central functionality and are ready for production use.')"
-				class="official icon-checkmark">
-				{{ t('settings', 'Featured') }}</span>
-			<AppScore v-if="hasRating" :score="app.appstoreData.ratingOverall" />
-		</div>
-
-		<div v-if="author" class="app-author">
-			{{ t('settings', 'by') }}
-			<span v-for="(a, index) in author" :key="index">
-				<a v-if="a['@attributes'] && a['@attributes']['homepage']" :href="a['@attributes']['homepage']">{{ a['@value'] }}</a><span v-else-if="a['@value']">{{ a['@value'] }}</span><span v-else>{{ a }}</span><span v-if="index+1 < author.length">, </span>
-			</span>
-		</div>
-		<div v-if="licence" class="app-licence">
-			{{ licence }}
-		</div>
-		<div class="actions">
-			<div class="actions-buttons">
-				<input v-if="app.update"
-					class="update primary"
-					type="button"
-					:value="t('settings', 'Update to {version}', {version: app.update})"
-					:disabled="installing || loading(app.id)"
-					@click="update(app.id)">
-				<input v-if="app.canUnInstall"
-					class="uninstall"
-					type="button"
-					:value="t('settings', 'Remove')"
-					:disabled="installing || loading(app.id)"
-					@click="remove(app.id)">
-				<input v-if="app.active"
-					class="enable"
-					type="button"
-					:value="t('settings','Disable')"
-					:disabled="installing || loading(app.id)"
-					@click="disable(app.id)">
-				<input v-if="!app.active && (app.canInstall || app.isCompatible)"
-					v-tooltip.auto="enableButtonTooltip"
-					class="enable primary"
-					type="button"
-					:value="enableButtonText"
-					:disabled="!app.canInstall || installing || loading(app.id)"
-					@click="enable(app.id)">
-				<input v-else-if="!app.active"
-					v-tooltip.auto="forceEnableButtonTooltip"
-					class="enable force"
-					type="button"
-					:value="forceEnableButtonText"
-					:disabled="installing || loading(app.id)"
-					@click="forceEnable(app.id)">
+					viewBox="0 0 32 32">
+					<defs><filter :id="filterId"><feColorMatrix in="SourceGraphic" type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0" /></filter></defs>
+					<image x="0"
+						y="0"
+						width="32"
+						height="32"
+						preserveAspectRatio="xMinYMin meet"
+						:filter="filterUrl"
+						:xlink:href="app.preview"
+						class="app-icon" />
+				</svg>
+				{{ app.name }}
+			</h2>
+			<div v-if="app.screenshot" class="app-screenshot">
+				<img :src="app.screenshot">
 			</div>
-			<div class="app-groups">
-				<div v-if="app.active && canLimitToGroups(app)" class="groups-enable">
-					<input :id="prefix('groups_enable', app.id)"
-						v-model="groupCheckedAppsData"
-						type="checkbox"
-						:value="app.id"
-						class="groups-enable__checkbox checkbox"
-						@change="setGroupLimit">
-					<label :for="prefix('groups_enable', app.id)">{{ t('settings', 'Limit to groups') }}</label>
-					<input type="hidden"
-						class="group_select"
-						:title="t('settings', 'All')"
-						value="">
-					<Multiselect v-if="isLimitedToGroups(app)"
-						:options="groups"
-						:value="appGroups"
-						:options-limit="5"
-						:placeholder="t('settings', 'Limit app usage to groups')"
-						label="name"
-						track-by="id"
-						class="multiselect-vue"
-						:multiple="true"
-						:close-on-select="false"
-						:tag-width="60"
-						@select="addGroupLimitation"
-						@remove="removeGroupLimitation"
-						@search-change="asyncFindGroup">
-						<span slot="noResult">{{ t('settings', 'No results') }}</span>
-					</Multiselect>
+			<div v-if="app.level === 300 || app.level === 200 || hasRating" class="app-level">
+				<span v-if="app.level === 300"
+					v-tooltip.auto="t('settings', 'This app is supported via your current Nextcloud subscription.')"
+					class="supported icon-checkmark-color">
+					{{ t('settings', 'Supported') }}</span>
+				<span v-if="app.level === 200"
+					v-tooltip.auto="t('settings', 'Featured apps are developed by and within the community. They offer central functionality and are ready for production use.')"
+					class="official icon-checkmark">
+					{{ t('settings', 'Featured') }}</span>
+				<AppScore v-if="hasRating" :score="app.appstoreData.ratingOverall" />
+			</div>
+
+			<div v-if="author" class="app-author">
+				{{ t('settings', 'by') }}
+				<span v-for="(a, index) in author" :key="index">
+					<a v-if="a['@attributes'] && a['@attributes']['homepage']" :href="a['@attributes']['homepage']">{{ a['@value'] }}</a><span v-else-if="a['@value']">{{ a['@value'] }}</span><span v-else>{{ a }}</span><span v-if="index+1 < author.length">, </span>
+				</span>
+			</div>
+			<div v-if="licence" class="app-licence">
+				{{ licence }}
+			</div>
+
+			<ul v-if="app.missingMinOwnCloudVersion || app.missingMaxOwnCloudVersion || !app.canInstall" class="app-dependencies">
+				<li v-if="app.missingMinOwnCloudVersion">
+					{{ t('settings', 'This app has no minimum Nextcloud version assigned. This will be an error in the future.') }}
+				</li>
+				<li v-if="app.missingMaxOwnCloudVersion">
+					{{ t('settings', 'This app has no maximum Nextcloud version assigned. This will be an error in the future.') }}
+				</li>
+				<li v-if="!app.canInstall">
+					{{ t('settings', 'This app cannot be installed because the following dependencies are not fulfilled:') }}
+					<ul class="missing-dependencies">
+						<li v-for="(dep, index) in app.missingDependencies" :key="index">
+							{{ dep }}
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</template>
+		<template #primary-actions>
+			<div class="actions">
+				<div class="actions-buttons">
+					<input v-if="app.update"
+						class="update primary"
+						type="button"
+						:value="t('settings', 'Update to {version}', {version: app.update})"
+						:disabled="installing || loading(app.id)"
+						@click="update(app.id)">
+					<input v-if="app.canUnInstall"
+						class="uninstall"
+						type="button"
+						:value="t('settings', 'Remove')"
+						:disabled="installing || loading(app.id)"
+						@click="remove(app.id)">
+					<input v-if="app.active"
+						class="enable"
+						type="button"
+						:value="t('settings','Disable')"
+						:disabled="installing || loading(app.id)"
+						@click="disable(app.id)">
+					<input v-if="!app.active && (app.canInstall || app.isCompatible)"
+						v-tooltip.auto="enableButtonTooltip"
+						class="enable primary"
+						type="button"
+						:value="enableButtonText"
+						:disabled="!app.canInstall || installing || loading(app.id)"
+						@click="enable(app.id)">
+					<input v-else-if="!app.active"
+						v-tooltip.auto="forceEnableButtonTooltip"
+						class="enable force"
+						type="button"
+						:value="forceEnableButtonText"
+						:disabled="installing || loading(app.id)"
+						@click="forceEnable(app.id)">
+				</div>
+				<div class="app-groups">
+					<div v-if="app.active && canLimitToGroups(app)" class="groups-enable">
+						<input :id="prefix('groups_enable', app.id)"
+							v-model="groupCheckedAppsData"
+							type="checkbox"
+							:value="app.id"
+							class="groups-enable__checkbox checkbox"
+							@change="setGroupLimit">
+						<label :for="prefix('groups_enable', app.id)">{{ t('settings', 'Limit to groups') }}</label>
+						<input type="hidden"
+							class="group_select"
+							:title="t('settings', 'All')"
+							value="">
+						<Multiselect v-if="isLimitedToGroups(app)"
+							:options="groups"
+							:value="appGroups"
+							:options-limit="5"
+							:placeholder="t('settings', 'Limit app usage to groups')"
+							label="name"
+							track-by="id"
+							class="multiselect-vue"
+							:multiple="true"
+							:close-on-select="false"
+							:tag-width="60"
+							@select="addGroupLimitation"
+							@remove="removeGroupLimitation"
+							@search-change="asyncFindGroup">
+							<span slot="noResult">{{ t('settings', 'No results') }}</span>
+						</Multiselect>
+					</div>
 				</div>
 			</div>
-		</div>
+		</template>
+		<AppSidebarTab id="desc"
+			icon="icon-category-office"
+			name="Description"
+			:order="0">
+			<Markdown :text="app.description" />
 
-		<ul class="app-dependencies">
-			<li v-if="app.missingMinOwnCloudVersion">
-				{{ t('settings', 'This app has no minimum Nextcloud version assigned. This will be an error in the future.') }}
-			</li>
-			<li v-if="app.missingMaxOwnCloudVersion">
-				{{ t('settings', 'This app has no maximum Nextcloud version assigned. This will be an error in the future.') }}
-			</li>
-			<li v-if="!app.canInstall">
-				{{ t('settings', 'This app cannot be installed because the following dependencies are not fulfilled:') }}
-				<ul class="missing-dependencies">
-					<li v-for="(dep, index) in app.missingDependencies" :key="index">
-						{{ dep }}
-					</li>
-				</ul>
-			</li>
-		</ul>
+			<p class="documentation">
+				<a v-if="!app.internal"
+					class="appslink"
+					:href="appstoreUrl"
+					target="_blank"
+					rel="noreferrer noopener">{{ t('settings', 'View in store') }} ↗</a>
 
-		<p class="documentation">
-			<a v-if="!app.internal"
-				class="appslink"
-				:href="appstoreUrl"
-				target="_blank"
-				rel="noreferrer noopener">{{ t('settings', 'View in store') }} ↗</a>
+				<a v-if="app.website"
+					class="appslink"
+					:href="app.website"
+					target="_blank"
+					rel="noreferrer noopener">{{ t('settings', 'Visit website') }} ↗</a>
+				<a v-if="app.bugs"
+					class="appslink"
+					:href="app.bugs"
+					target="_blank"
+					rel="noreferrer noopener">{{ t('settings', 'Report a bug') }} ↗</a>
 
-			<a v-if="app.website"
-				class="appslink"
-				:href="app.website"
-				target="_blank"
-				rel="noreferrer noopener">{{ t('settings', 'Visit website') }} ↗</a>
-			<a v-if="app.bugs"
-				class="appslink"
-				:href="app.bugs"
-				target="_blank"
-				rel="noreferrer noopener">{{ t('settings', 'Report a bug') }} ↗</a>
-
-			<a v-if="app.documentation && app.documentation.user"
-				class="appslink"
-				:href="app.documentation.user"
-				target="_blank"
-				rel="noreferrer noopener">{{ t('settings', 'User documentation') }} ↗</a>
-			<a v-if="app.documentation && app.documentation.admin"
-				class="appslink"
-				:href="app.documentation.admin"
-				target="_blank"
-				rel="noreferrer noopener">{{ t('settings', 'Admin documentation') }} ↗</a>
-			<a v-if="app.documentation && app.documentation.developer"
-				class="appslink"
-				:href="app.documentation.developer"
-				target="_blank"
-				rel="noreferrer noopener">{{ t('settings', 'Developer documentation') }} ↗</a>
-		</p>
-
-		<div class="app-description" v-html="renderMarkdown" />
-	</div>
+				<a v-if="app.documentation && app.documentation.user"
+					class="appslink"
+					:href="app.documentation.user"
+					target="_blank"
+					rel="noreferrer noopener">{{ t('settings', 'User documentation') }} ↗</a>
+				<a v-if="app.documentation && app.documentation.admin"
+					class="appslink"
+					:href="app.documentation.admin"
+					target="_blank"
+					rel="noreferrer noopener">{{ t('settings', 'Admin documentation') }} ↗</a>
+				<a v-if="app.documentation && app.documentation.developer"
+					class="appslink"
+					:href="app.documentation.developer"
+					target="_blank"
+					rel="noreferrer noopener">{{ t('settings', 'Developer documentation') }} ↗</a>
+			</p>
+		</AppSidebarTab>
+		<AppSidebarTab v-if="app.appstoreData && app.releases[0].translations.en.changelog"
+			id="desca"
+			icon="icon-category-organization"
+			name="Changelog"
+			:order="1">
+			<div v-for="release in app.releases" :key="release.version">
+				<h1>{{ release.version }}</h1>
+				<Markdown v-if="changelog(release)" :text="changelog(release)" />
+			</div>
+		</AppSidebarTab>
+	</AppSidebar>
 </template>
 
 <script>
-import { Multiselect } from '@nextcloud/vue'
-import marked from 'marked'
-import dompurify from 'dompurify'
+import { Multiselect, AppSidebar, AppSidebarTab } from '@nextcloud/vue'
 
 import AppScore from './AppList/AppScore'
 import AppManagement from './AppManagement'
 import PrefixMixin from './PrefixMixin'
 import SvgFilterMixin from './SvgFilterMixin'
+import Markdown from './Markdown'
 
 export default {
 	name: 'AppDetails',
 	components: {
+
+		AppSidebar,
+		AppSidebarTab,
+		Markdown,
 		Multiselect,
 		AppScore,
 	},
 	mixins: [AppManagement, PrefixMixin, SvgFilterMixin],
-	props: ['category', 'app'],
+	props: {
+		app: {
+			type: Object,
+			required: true,
+		},
+	},
 	data() {
 		return {
 			groupCheckedAppsData: false,
@@ -243,65 +271,8 @@ export default {
 				.filter(group => group.id !== 'disabled')
 				.sort((a, b) => a.name.localeCompare(b.name))
 		},
-		renderMarkdown() {
-			const renderer = new marked.Renderer()
-			renderer.link = function(href, title, text) {
-				let prot
-				try {
-					prot = decodeURIComponent(unescape(href))
-						.replace(/[^\w:]/g, '')
-						.toLowerCase()
-				} catch (e) {
-					return ''
-				}
-
-				if (prot.indexOf('http:') !== 0 && prot.indexOf('https:') !== 0) {
-					return ''
-				}
-
-				let out = '<a href="' + href + '" rel="noreferrer noopener"'
-				if (title) {
-					out += ' title="' + title + '"'
-				}
-				out += '>' + text + '</a>'
-				return out
-			}
-			renderer.image = function(href, title, text) {
-				if (text) {
-					return text
-				}
-				return title
-			}
-			renderer.blockquote = function(quote) {
-				return quote
-			}
-			return dompurify.sanitize(
-				marked(this.app.description.trim(), {
-					renderer: renderer,
-					gfm: false,
-					highlight: false,
-					tables: false,
-					breaks: false,
-					pedantic: false,
-					sanitize: true,
-					smartLists: true,
-					smartypants: false,
-				}),
-				{
-					SAFE_FOR_JQUERY: true,
-					ALLOWED_TAGS: [
-						'strong',
-						'p',
-						'a',
-						'ul',
-						'ol',
-						'li',
-						'em',
-						'del',
-						'blockquote',
-					],
-				}
-			)
+		changelog() {
+			return (release) => release.translations.en.changelog
 		},
 	},
 	mounted() {
@@ -312,7 +283,106 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+	#app-sidebar {
+
+		&::v-deep .app-sidebar-header__desc {
+			display: none;
+		}
+
+		&::v-deep .app-sidebar-header,
+		&::v-deep .app-sidebar-header__figure {
+			height: auto;
+			max-height: 100%;
+			padding: 10px;
+		}
+
+		h1 {
+			font-weight: bold;
+			font-size: 120%;
+		}
+
+		h2 {
+			.icon-settings-dark,
+			svg {
+				display: inline-block;
+				width: 16px;
+				height: 16px;
+				margin-right: 10px;
+				opacity: .7;
+			}
+		}
+
+		.app-screenshot {
+			width: 100%;
+			height: 30vh;
+			text-align:center;
+			img {
+				width: auto;
+				max-width: 100%;
+				max-height: 100%;
+			}
+		}
+
+		.app-level {
+			clear: right;
+			width: 100%;
+
+			.supported,
+			.official {
+				vertical-align: top;
+			}
+
+			.app-score-image {
+				float: right;
+			}
+		}
+
+		.app-author, .app-licence {
+			color: var(--color-text-maxcontrast);
+		}
+
+		.app-dependencies {
+			margin: 10px 0;
+		}
+
+		.app-description p {
+			margin: 10px 0;
+		}
+
+		.close {
+			position: absolute;
+			top: 0;
+			right: 0;
+			padding: 14px;
+			opacity: 0.5;
+			z-index: 1;
+			width: 44px;
+			height: 44px;
+		}
+
+		.actions {
+			display: flex;
+			align-items: center;
+
+			.app-groups {
+				padding: 5px;
+			}
+		}
+
+		.appslink {
+			text-decoration: underline;
+			margin-right: 5px;
+		}
+
+		.app-level,
+		.documentation,
+		.app-dependencies,
+		.app-description {
+			margin: 20px 0;
+		}
+	}
+
 	.force {
 		background: var(--color-main-background);
 		border-color: var(--color-error);
