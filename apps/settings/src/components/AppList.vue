@@ -33,12 +33,12 @@
 						{{ t('settings', 'Update all') }}
 					</button>
 				</div>
-				<transition-group name="app-list" tag="div" class="apps-list-container">
+				<div name="app-list" tag="div" class="apps-list-container">
 					<AppItem v-for="app in apps"
 						:key="app.id"
 						:app="app"
 						:category="category" />
-				</transition-group>
+				</div>
 			</template>
 			<transition-group v-if="useBundleView"
 				name="app-list"
@@ -122,15 +122,11 @@ export default {
 		showUpdateAll() {
 			return this.hasPendingUpdate && ['installed', 'updates'].includes(this.category)
 		},
-		apps() {
-			const apps = this.$store.getters.getAllApps
-				.filter(app => app.name.toLowerCase().search(this.search.toLowerCase()) !== -1)
-				.sort(function(a, b) {
-					const sortStringA = '' + (a.active ? 0 : 1) + (a.update ? 0 : 1) + a.name
-					const sortStringB = '' + (b.active ? 0 : 1) + (b.update ? 0 : 1) + b.name
-					return OC.Util.naturalSortCompare(sortStringA, sortStringB)
-				})
-
+		filteredApps() {
+			let apps = [...this.$store.getters.getAllApps]
+			if (this.search) {
+				apps = apps.filter(app => app.name.toLowerCase().search(this.search.toLowerCase()) !== -1)
+			}
 			if (this.category === 'installed') {
 				return apps.filter(app => app.installed)
 			}
@@ -152,7 +148,14 @@ export default {
 			// filter app store categories
 			return apps.filter(app => {
 				return app.appstore && app.category !== undefined
-					&& (app.category === this.category || app.category.indexOf(this.category) > -1)
+						&& (app.category === this.category || app.category.indexOf(this.category) > -1)
+			})
+		},
+		apps() {
+			return [...this.filteredApps].sort(function(a, b) {
+				const sortStringA = '' + (a.active ? 0 : 1) + (a.update ? 0 : 1) + a.name
+				const sortStringB = '' + (b.active ? 0 : 1) + (b.update ? 0 : 1) + b.name
+				return OC.Util.naturalSortCompare(sortStringA, sortStringB)
 			})
 		},
 		bundles() {
@@ -172,7 +175,7 @@ export default {
 			}
 			return this.$store.getters.getAllApps
 				.filter(app => {
-					if (app.name.toLowerCase().search(this.search.toLowerCase()) !== -1) {
+					if (app.appstore && app.name.toLowerCase().search(this.search.toLowerCase()) !== -1) {
 						return (!this.apps.find(_app => _app.id === app.id))
 					}
 					return false

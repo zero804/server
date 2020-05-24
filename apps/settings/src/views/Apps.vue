@@ -147,7 +147,7 @@ export default {
 			return this.$store.getters.loading('list')
 		},
 		currentApp() {
-			return this.apps.find(app => app.id === this.id)
+			return this.id !== '' ? this.apps.find(app => app.id === this.id) : null
 		},
 		categories() {
 			return this.$store.getters.getCategories
