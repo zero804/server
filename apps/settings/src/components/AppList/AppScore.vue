@@ -28,7 +28,12 @@ import { imagePath } from '@nextcloud/router'
 
 export default {
 	name: 'AppScore',
-	props: ['score'],
+	props: {
+		score: {
+			type: Number,
+			required: true,
+		},
+	},
 	computed: {
 		scoreImage() {
 			const score = Math.round(this.score * 10)

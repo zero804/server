@@ -108,7 +108,16 @@ export default {
 		AppItem,
 	},
 	mixins: [PrefixMixin],
-	props: ['category', 'app', 'search'],
+	props: {
+		category: {
+			type: String,
+			required: true,
+		},
+		search: {
+			type: String,
+			default: '',
+		},
+	},
 	computed: {
 		counter() {
 			return this.apps.filter(app => app.update).length

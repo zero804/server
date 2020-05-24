@@ -118,8 +118,14 @@ export default {
 	},
 	mixins: [AppManagement, SvgFilterMixin],
 	props: {
-		app: {},
-		category: {},
+		app: {
+			type: Object,
+			required: true,
+		},
+		category: {
+			type: String,
+			required: true,
+		},
 		listView: {
 			type: Boolean,
 			default: true,
