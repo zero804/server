@@ -31,8 +31,11 @@ namespace OC\Encryption\Keys;
 use OC\Encryption\Util;
 use OC\Files\Filesystem;
 use OC\Files\View;
+use OC\ServerNotAvailableException;
 use OC\User\NoUserException;
 use OCP\Encryption\Keys\IStorage;
+use OCP\IConfig;
+use OCP\Security\ICrypto;
 
 class Storage implements IStorage {
 
@@ -62,11 +65,17 @@ class Storage implements IStorage {
 	/** @var array */
 	private $keyCache = [];
 
+	/** @var ICrypto */
+	private $crypto;
+
+	/** @var IConfig */
+	private $config;
+
 	/**
 	 * @param View $view
 	 * @param Util $util
 	 */
-	public function __construct(View $view, Util $util) {
+	public function __construct(View $view, Util $util, ICrypto $crypto, IConfig $config) {
 		$this->view = $view;
 		$this->util = $util;
 
@@ -74,6 +83,8 @@ class Storage implements IStorage {
 		$this->keys_base_dir = $this->encryption_base_dir .'/keys';
 		$this->backup_base_dir = $this->encryption_base_dir .'/backup';
 		$this->root_dir = $this->util->getKeyStorageRoot();
+		$this->crypto = $crypto;
+		$this->config = $config;
 	}
 
 	/**
@@ -212,7 +223,22 @@ class Storage implements IStorage {
 			if (isset($this->keyCache[$path])) {
 				$key =  $this->keyCache[$path];
 			} else {
-				$key = $this->view->file_get_contents($path);
+				$data = $this->view->file_get_contents($path);
+
+				if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
+					$dataArray = json_decode($data, true);
+					if ($dataArray === null) {
+						throw new ServerNotAvailableException('Invalid encryption key');
+					}
+					try {
+						$key = $this->crypto->decrypt(base64_decode($dataArray['key']));
+					} catch (\Exception $e) {
+						throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
+					}
+				} else {
+					$key = $data;
+				}
+
 				$this->keyCache[$path] = $key;
 			}
 		}
@@ -231,7 +257,17 @@ class Storage implements IStorage {
 	private function setKey($path, $key) {
 		$this->keySetPreparation(dirname($path));
 
-		$result = $this->view->file_put_contents($path, $key);
+		if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
+			// Wrap the data
+			$data = [
+				'key' => base64_encode($this->crypto->encrypt($key)),
+			];
+			$data = json_encode($data);
+		} else {
+			$data = $key;
+		}
+
+		$result = $this->view->file_put_contents($path, $data);
 
 		if (is_int($result) && $result > 0) {
 			$this->keyCache[$path] = $key;
