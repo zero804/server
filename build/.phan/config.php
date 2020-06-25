@@ -54,6 +54,7 @@ return [
 		'apps/cloud_federation_api/composer',
 		'apps/comments/composer',
 		'apps/comments/tests',
+		'apps/contactsinteraction/composer',
 		'apps/dav/composer',
 		'apps/dav/tests',
 		'apps/encryption/composer',
