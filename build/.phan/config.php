@@ -21,7 +21,6 @@ return [
 		'build/.phan/stubs',
 		'core/',
 		'lib/',
-		'lib/composer',
 		'ocs-provider/',
 		'ocs/',
 		'tests/lib/Util/User',
@@ -98,7 +97,6 @@ return [
 		'apps/user_ldap/tests',
 		'apps/workflowengine/composer',
 		'apps/workflowengine/tests',
-		'build/.phan/',
 		'lib/composer',
 	],
 
