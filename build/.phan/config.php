@@ -97,6 +97,7 @@ return [
 		'apps/user_ldap/tests',
 		'apps/workflowengine/composer',
 		'apps/workflowengine/tests',
+		'build/.phan/stubs',
 		'lib/composer',
 	],
 
