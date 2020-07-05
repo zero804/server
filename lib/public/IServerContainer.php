@@ -364,13 +364,12 @@ interface IServerContainer extends IContainer {
 	public function getSearch();
 
 	/**
-	 * Get the certificate manager for the user
+	 * Get the certificate manager
 	 *
-	 * @param string $userId (optional) if not specified the current loggedin user is used, use null to get the system certificate manager
-	 * @return \OCP\ICertificateManager | null if $userId is null and no user is logged in
+	 * @return \OCP\ICertificateManager
 	 * @since 8.0.0
 	 */
-	public function getCertificateManager($userId = null);
+	public function getCertificateManager();
 
 	/**
 	 * Create a new event source

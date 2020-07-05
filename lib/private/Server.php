@@ -178,6 +178,7 @@ use OCP\IAppConfig;
 use OCP\IAvatarManager;
 use OCP\ICache;
 use OCP\ICacheFactory;
+use OCP\ICertificateManager;
 use OCP\IContainer;
 use OCP\IDateTimeFormatter;
 use OCP\IDateTimeZone;
@@ -805,22 +806,8 @@ class Server extends ServerContainer implements IServerContainer {
 		});
 		$this->registerDeprecatedAlias('DatabaseConnection', IDBConnection::class);
 
-
-		$this->registerService(IClientService::class, function (Server $c) {
-			$user = \OC_User::getUser();
-			$uid = $user ? $user : null;
-			return new ClientService(
-				$c->getConfig(),
-				$c->getLogger(),
-				new \OC\Security\CertificateManager(
-					$uid,
-					new View(),
-					$c->getConfig(),
-					$c->getLogger(),
-					$c->getSecureRandom()
-				)
-			);
-		});
+		$this->registerAlias(ICertificateManager::class, CertificateManager::class);
+		$this->registerAlias(IClientService::class, ClientService::class);
 		$this->registerDeprecatedAlias('HttpClientService', IClientService::class);
 		$this->registerService(IEventLogger::class, function (Server $c) {
 			$eventLogger = new EventLogger();
@@ -1819,27 +1806,12 @@ class Server extends ServerContainer implements IServerContainer {
 	}
 
 	/**
-	 * Get the certificate manager for the user
+	 * Get the certificate manager
 	 *
-	 * @param string $userId (optional) if not specified the current loggedin user is used, use null to get the system certificate manager
-	 * @return \OCP\ICertificateManager | null if $uid is null and no user is logged in
+	 * @return \OCP\ICertificateManager
 	 */
-	public function getCertificateManager($userId = '') {
-		if ($userId === '') {
-			$userSession = $this->getUserSession();
-			$user = $userSession->getUser();
-			if (is_null($user)) {
-				return null;
-			}
-			$userId = $user->getUID();
-		}
-		return new CertificateManager(
-			$userId,
-			new View(),
-			$this->getConfig(),
-			$this->getLogger(),
-			$this->getSecureRandom()
-		);
+	public function getCertificateManager() {
+		return $this->query(ICertificateManager::class);
 	}
 
 	/**

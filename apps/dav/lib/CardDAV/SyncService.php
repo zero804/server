@@ -156,7 +156,7 @@ class SyncService {
 		}
 
 		/** @var ICertificateManager $certManager */
-		$certManager = \OC::$server->getCertificateManager(null);
+		$certManager = \OC::$server->getCertificateManager();
 		$certPath = $certManager->getAbsoluteBundlePath();
 		if (file_exists($certPath)) {
 			$this->certPath = $certPath;
