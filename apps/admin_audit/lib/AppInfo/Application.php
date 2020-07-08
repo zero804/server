@@ -36,8 +36,8 @@ namespace OCA\AdminAudit\AppInfo;
 use Closure;
 use OC\Files\Filesystem;
 use OC\Files\Node\File;
-use OC\Group\Manager;
-use OC\User\Session;
+use OC\Group\Manager as GroupManager;
+use OC\User\Session as UserSession;
 use OCA\AdminAudit\Actions\AppManagement;
 use OCA\AdminAudit\Actions\Auth;
 use OCA\AdminAudit\Actions\Console;
@@ -132,8 +132,8 @@ class Application extends App implements IBootstrap {
 		Util::connectHook('OC_User', 'post_deleteUser', $userActions, 'delete');
 		Util::connectHook('OC_User', 'changeUser', $userActions, 'change');
 
-		/** @var IUserSession|Session $userSession */
 		$userSession = $serverContainer->getUserSession();
+		assert($userSession instanceof UserSession);
 		$userSession->listen('\OC\User', 'postSetPassword', [$userActions, 'setPassword']);
 		$userSession->listen('\OC\User', 'assignedUserId', [$userActions, 'assign']);
 		$userSession->listen('\OC\User', 'postUnassignedUserId', [$userActions, 'unassign']);
@@ -143,8 +143,8 @@ class Application extends App implements IBootstrap {
 								  IServerContainer $serverContainer) {
 		$groupActions = new GroupManagement($logger);
 
-		/** @var IGroupManager|Manager $groupManager */
 		$groupManager = $serverContainer->getGroupManager();
+		assert($groupManager instanceof GroupManager);
 		$groupManager->listen('\OC\Group', 'postRemoveUser', [$groupActions, 'removeUser']);
 		$groupManager->listen('\OC\Group', 'postAddUser', [$groupActions, 'addUser']);
 		$groupManager->listen('\OC\Group', 'postDelete', [$groupActions, 'deleteGroup']);

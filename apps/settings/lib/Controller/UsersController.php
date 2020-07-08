@@ -57,7 +57,10 @@ use OCP\Mail\IMailer;
 use function in_array;
 
 class UsersController extends Controller {
-	/** @var IUserManager */
+	/**
+	 * @var IUserManager
+	 * @phan-var \OC\User\Manager
+	 */
 	private $userManager;
 	/** @var IGroupManager */
 	private $groupManager;
@@ -71,7 +74,10 @@ class UsersController extends Controller {
 	private $l10n;
 	/** @var IMailer */
 	private $mailer;
-	/** @var IFactory */
+	/**
+	 * @var IFactory
+	 * @phan-var \OC\L10N\Factory
+	 */
 	private $l10nFactory;
 	/** @var IAppManager */
 	private $appManager;
@@ -202,7 +208,7 @@ class UsersController extends Controller {
 						$groups[$key]['usercount']--;
 						$userCount -= 1; // we also lower from one the total count
 					}
-				};
+				}
 				$userCount += $this->userManager->countUsersOfGroups($groupsInfo->getGroups());
 				$disabledUsers = $this->userManager->countDisabledUsersOfGroups($groupsNames);
 			}

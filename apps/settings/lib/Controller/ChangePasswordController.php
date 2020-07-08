@@ -56,7 +56,10 @@ class ChangePasswordController extends Controller {
 	/** @var IL10N */
 	private $l;
 
-	/** @var IGroupManager */
+	/**
+	 * @var IGroupManager
+	 * @phan-var \OC\Group\Manager
+	 */
 	private $groupManager;
 
 	/** @var Session */
