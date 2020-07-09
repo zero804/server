@@ -33,6 +33,7 @@
 
 namespace OCA\Settings\Controller;
 
+use OC\Group\Manager as GroupManager;
 use OC\HintException;
 use OC\User\Session;
 use OCP\App\IAppManager;
@@ -56,10 +57,7 @@ class ChangePasswordController extends Controller {
 	/** @var IL10N */
 	private $l;
 
-	/**
-	 * @var IGroupManager
-	 * @phan-var \OC\Group\Manager
-	 */
+	/** @var GroupManager */
 	private $groupManager;
 
 	/** @var Session */
@@ -73,7 +71,7 @@ class ChangePasswordController extends Controller {
 								string $userId,
 								IUserManager $userManager,
 								IUserSession $userSession,
-								IGroupManager $groupManager,
+								GroupManager $groupManager,
 								IAppManager $appManager,
 								IL10N $l) {
 		parent::__construct($appName, $request);

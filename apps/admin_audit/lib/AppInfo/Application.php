@@ -132,8 +132,7 @@ class Application extends App implements IBootstrap {
 		Util::connectHook('OC_User', 'post_deleteUser', $userActions, 'delete');
 		Util::connectHook('OC_User', 'changeUser', $userActions, 'change');
 
-		$userSession = $serverContainer->getUserSession();
-		assert($userSession instanceof UserSession);
+		$userSession = $serverContainer->query(UserSession::class);
 		$userSession->listen('\OC\User', 'postSetPassword', [$userActions, 'setPassword']);
 		$userSession->listen('\OC\User', 'assignedUserId', [$userActions, 'assign']);
 		$userSession->listen('\OC\User', 'postUnassignedUserId', [$userActions, 'unassign']);
@@ -143,8 +142,7 @@ class Application extends App implements IBootstrap {
 								  IServerContainer $serverContainer) {
 		$groupActions = new GroupManagement($logger);
 
-		$groupManager = $serverContainer->getGroupManager();
-		assert($groupManager instanceof GroupManager);
+		$groupManager = $serverContainer->query(GroupManager::class);
 		$groupManager->listen('\OC\Group', 'postRemoveUser', [$groupActions, 'removeUser']);
 		$groupManager->listen('\OC\Group', 'postAddUser', [$groupActions, 'addUser']);
 		$groupManager->listen('\OC\Group', 'postDelete', [$groupActions, 'deleteGroup']);
