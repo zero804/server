@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OC\AppFramework\Bootstrap;
 
+use OC\InitialStateService;
 use OC\Support\CrashReport\Registry;
 use OC_App;
 use OCP\AppFramework\App;
@@ -54,6 +55,9 @@ class Coordinator {
 	/** @var IEventDispatcher */
 	private $eventDispatcher;
 
+	/** @var InitialStateService */
+	private $initialStateService;
+
 	/** @var ILogger */
 	private $logger;
 
@@ -67,12 +71,14 @@ class Coordinator {
 								Registry $registry,
 								IManager $dashboardManager,
 								IEventDispatcher $eventListener,
+								InitialStateService $initialStateService,
 								ILogger $logger) {
 		$this->serverContainer = $container;
 		$this->registry = $registry;
 		$this->dashboardManager = $dashboardManager;
 		$this->eventDispatcher = $eventListener;
 		$this->logger = $logger;
+		$this->initialStateService = $initialStateService;
 	}
 
 	public function runRegistration(): void {
@@ -130,6 +136,7 @@ class Coordinator {
 		$this->registrationContext->delegateEventListenerRegistrations($this->eventDispatcher);
 		$this->registrationContext->delegateContainerRegistrations($apps);
 		$this->registrationContext->delegateMiddlewareRegistrations($apps);
+		$this->registrationContext->delegateInitialStateProviderRegistration($this->initialStateService);
 	}
 
 	public function getRegistrationContext(): ?RegistrationContext {

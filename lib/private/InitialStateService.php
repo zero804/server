@@ -28,13 +28,19 @@ declare(strict_types=1);
 namespace OC;
 
 use Closure;
+use OCP\AppFramework\Services\InitialStateProvider;
+use OCP\AppFramework\QueryException;
 use OCP\IInitialStateService;
 use OCP\ILogger;
+use OCP\IServerContainer;
 
 class InitialStateService implements IInitialStateService {
 
 	/** @var ILogger */
 	private $logger;
+
+	/** @var IServerContainer */
+	private $serverContainer;
 
 	/** @var string[][] */
 	private $states = [];
@@ -42,8 +48,12 @@ class InitialStateService implements IInitialStateService {
 	/** @var Closure[][] */
 	private $lazyStates = [];
 
-	public function __construct(ILogger $logger) {
+	/** @var array[] */
+	private $lazyBases = [];
+
+	public function __construct(IServerContainer $serverContainer, ILogger $logger) {
 		$this->logger = $logger;
+		$this->serverContainer = $serverContainer;
 	}
 
 	public function provideInitialState(string $appName, string $key, $data): void {
@@ -80,6 +90,7 @@ class InitialStateService implements IInitialStateService {
 
 	public function getInitialStates(): array {
 		$this->invokeLazyStateCallbacks();
+		$this->invokeLazyBase();
 
 		$appStates = [];
 		foreach ($this->states as $app => $states) {
@@ -88,5 +99,35 @@ class InitialStateService implements IInitialStateService {
 			}
 		}
 		return $appStates;
+	}
+
+	private function invokeLazyBase(): void {
+		foreach ($this->lazyBases as $lazyBase) {
+			try {
+				$state = $this->serverContainer->query($lazyBase['class']);
+			} catch (QueryException $e) {
+				$this->logger->logException($e, [
+					'message' => 'Could not query: ' . $lazyBase['class'],
+					'level' => ILogger::WARN,
+				]);
+				continue;
+			}
+
+			if (!($state instanceof InitialStateProvider)) {
+				$this->logger->debug($lazyBase['class'] . ' is not an instance of ' . InitialStateProvider::class);
+				continue;
+			}
+
+			$this->provideInitialState($lazyBase['appId'], $state->getKey(), $state->getData());
+		}
+
+		$this->lazyBases = [];
+	}
+
+	public function registerLazyBase(string $appId, string $class): void {
+		$this->lazyBases[] = [
+			'appId' => $appId,
+			'class' => $class,
+		];
 	}
 }

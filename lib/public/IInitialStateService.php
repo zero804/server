@@ -58,6 +58,8 @@ interface IInitialStateService {
 	 * @param string $appName
 	 * @param string $key
 	 * @param Closure $closure returns a primitive or an object that implements JsonSerializable
+	 *
+	 * @deprecated 20.0.0 Use OCP\AppFramework\Services\InitialStateProvider
 	 */
 	public function provideLazyInitialState(string $appName, string $key, Closure $closure): void;
 }

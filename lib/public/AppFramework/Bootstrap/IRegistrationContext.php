@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace OCP\AppFramework\Bootstrap;
 
-use OCP\AppFramework\IAppContainer;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IContainer;
 
@@ -152,4 +151,19 @@ interface IRegistrationContext {
 	 * @since 20.0.0
 	 */
 	public function registerAlternativeLogin(string $class): void;
+
+	/**
+	 * Register a lazy loaded initial state provider. This will be called once
+	 * the initial state is actually invoked.
+	 *
+	 * If you only need your initial state when your controller is loaded, please
+	 * use \OCP\AppFramework\Services\IInitialState via dependency injection.
+	 *
+	 * @param string $class Class must extend OCP\AppFramework\Base\InitialState
+	 *
+	 * @return void
+	 *
+	 * @since 20.0.0
+	 */
+	public function registerInitialStateProvider(string $class): void;
 }

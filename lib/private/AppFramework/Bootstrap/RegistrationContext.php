@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace OC\AppFramework\Bootstrap;
 
 use Closure;
+use OC\InitialStateService;
 use OC\Support\CrashReport\Registry;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -65,6 +66,9 @@ class RegistrationContext {
 
 	/** @var array[] */
 	private $alternativeLogins = [];
+
+	/** @var array[] */
+	private $initialStates = [];
 
 	/** @var ILogger */
 	private $logger;
@@ -161,6 +165,13 @@ class RegistrationContext {
 					$class
 				);
 			}
+
+			public function registerInitialStateProvider(string $class): void {
+				$this->context->registerInitialStateProvider(
+					$this->appId,
+					$class
+				);
+			}
 		};
 	}
 
@@ -235,6 +246,13 @@ class RegistrationContext {
 
 	public function registerAlternativeLogin(string $appId, string $class): void {
 		$this->alternativeLogins[] = [
+			'appId' => $appId,
+			'class' => $class,
+		];
+	}
+
+	public function registerInitialStateProvider(string $appId, string $class) {
+		$this->initialStates[] = [
 			'appId' => $appId,
 			'class' => $class,
 		];
@@ -409,5 +427,19 @@ class RegistrationContext {
 	 */
 	public function getAlternativeLogins(): array {
 		return $this->alternativeLogins;
+	}
+
+	public function delegateInitialStateProviderRegistration(InitialStateService $initialStateService): void {
+		foreach ($this->initialStates as $initialState) {
+			try {
+				$initialStateService->registerLazyBase($initialState['appId'], $initialState['class']);
+			} catch (Throwable $e) {
+				$appId = $initialState['appId'];
+				$this->logger->logException($e, [
+					'message' => "Error during initialstate registration of $appId: " . $e->getMessage(),
+					'level' => ILogger::ERROR,
+				]);
+			}
+		}
 	}
 }
