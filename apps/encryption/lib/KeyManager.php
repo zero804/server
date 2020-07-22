@@ -41,6 +41,7 @@ use OCP\Encryption\Keys\IStorage;
 use OCP\IConfig;
 use OCP\ILogger;
 use OCP\IUserSession;
+use OCP\Lock\ILockingProvider;
 
 class KeyManager {
 
@@ -104,6 +105,11 @@ class KeyManager {
 	private $util;
 
 	/**
+	 * @var ILockingProvider
+	 */
+	private $lockingProvider;
+
+	/**
 	 * @param IStorage $keyStorage
 	 * @param Crypt $crypt
 	 * @param IConfig $config
@@ -119,7 +125,8 @@ class KeyManager {
 		IUserSession $userSession,
 		Session $session,
 		ILogger $log,
-		Util $util
+		Util $util,
+		ILockingProvider $lockingProvider
 	) {
 		$this->util = $util;
 		$this->session = $session;
@@ -127,6 +134,7 @@ class KeyManager {
 		$this->crypt = $crypt;
 		$this->config = $config;
 		$this->log = $log;
+		$this->lockingProvider = $lockingProvider;
 
 		$this->recoveryKeyId = $this->config->getAppValue('encryption',
 			'recoveryKeyId');
@@ -161,17 +169,23 @@ class KeyManager {
 	public function validateShareKey() {
 		$shareKey = $this->getPublicShareKey();
 		if (empty($shareKey)) {
-			$keyPair = $this->crypt->createKeyPair();
+			$this->lockingProvider->acquireLock('encryption-generateSharedKey', ILockingProvider::LOCK_EXCLUSIVE, 'Encryption: shared key generation');
+			try {
+				$keyPair = $this->crypt->createKeyPair();
 
-			// Save public key
-			$this->keyStorage->setSystemUserKey(
-				$this->publicShareKeyId . '.publicKey', $keyPair['publicKey'],
-				Encryption::ID);
+				// Save public key
+				$this->keyStorage->setSystemUserKey(
+					$this->publicShareKeyId . '.publicKey', $keyPair['publicKey'],
+					Encryption::ID);
 
-			// Encrypt private key empty passphrase
-			$encryptedKey = $this->crypt->encryptPrivateKey($keyPair['privateKey'], '');
-			$header = $this->crypt->generateHeader();
-			$this->setSystemPrivateKey($this->publicShareKeyId, $header . $encryptedKey);
+				// Encrypt private key empty passphrase
+				$encryptedKey = $this->crypt->encryptPrivateKey($keyPair['privateKey'], '');
+				$header = $this->crypt->generateHeader();
+				$this->setSystemPrivateKey($this->publicShareKeyId, $header . $encryptedKey);
+			} catch (\Throwable $e) {
+				$this->lockingProvider->releaseLock('encryption-generateSharedKey', ILockingProvider::LOCK_EXCLUSIVE);
+				throw $e;
+			}
 		}
 	}
 
@@ -184,18 +198,35 @@ class KeyManager {
 		}
 
 		$publicMasterKey = $this->getPublicMasterKey();
-		if (empty($publicMasterKey)) {
-			$keyPair = $this->crypt->createKeyPair();
+		$privateMasterKey = $this->getPrivateMasterKey();
 
-			// Save public key
-			$this->keyStorage->setSystemUserKey(
-				$this->masterKeyId . '.publicKey', $keyPair['publicKey'],
-				Encryption::ID);
+		if (empty($publicMasterKey) && empty($privateMasterKey)) {
+			// There could be a race condition here if two requests would trigger
+			// the generation the second one would enter the key generation as long
+			// as the first one didn't write the key to the keystorage yet
+			$this->lockingProvider->acquireLock('encryption-generateMasterKey', ILockingProvider::LOCK_EXCLUSIVE, 'Encryption: master key generation');
+			try {
+				$keyPair = $this->crypt->createKeyPair();
 
-			// Encrypt private key with system password
-			$encryptedKey = $this->crypt->encryptPrivateKey($keyPair['privateKey'], $this->getMasterKeyPassword(), $this->masterKeyId);
-			$header = $this->crypt->generateHeader();
-			$this->setSystemPrivateKey($this->masterKeyId, $header . $encryptedKey);
+				// Save public key
+				$this->keyStorage->setSystemUserKey(
+					$this->masterKeyId . '.publicKey', $keyPair['publicKey'],
+					Encryption::ID);
+
+				// Encrypt private key with system password
+				$encryptedKey = $this->crypt->encryptPrivateKey($keyPair['privateKey'], $this->getMasterKeyPassword(), $this->masterKeyId);
+				$header = $this->crypt->generateHeader();
+				$this->setSystemPrivateKey($this->masterKeyId, $header . $encryptedKey);
+			} catch (\Throwable $e) {
+				$this->lockingProvider->releaseLock('encryption-generateMasterKey', ILockingProvider::LOCK_EXCLUSIVE);
+				throw $e;
+			}
+		} elseif (empty($publicMasterKey)) {
+			$this->log->error('A private master key is available but the public key could not be found. This should never happen.');
+			return;
+		} elseif (empty($privateMasterKey)) {
+			$this->log->error('A private master key is available but the public key could not be found. This should never happen.');
+			return;
 		}
 
 		if (!$this->session->isPrivateKeySet()) {
@@ -251,7 +282,7 @@ class KeyManager {
 	/**
 	 * @param string $uid
 	 * @param string $password
-	 * @param string $keyPair
+	 * @param array $keyPair
 	 * @return bool
 	 */
 	public function storeKeyPair($uid, $password, $keyPair) {
@@ -718,6 +749,15 @@ class KeyManager {
 	 * @return string
 	 */
 	public function getPublicMasterKey() {
-		return $this->keyStorage->getSystemUserKey($this->masterKeyId . '.publicKey', Encryption::ID);
+		return $this->keyStorage->getSystemUserKey($this->masterKeyId . '.' . $this->publicKeyId, Encryption::ID);
+	}
+
+	/**
+	 * get public master key
+	 *
+	 * @return string
+	 */
+	public function getPrivateMasterKey() {
+		return $this->keyStorage->getSystemUserKey($this->masterKeyId . '.' . $this->privateKeyId, Encryption::ID);
 	}
 }
