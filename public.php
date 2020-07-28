@@ -31,6 +31,9 @@
  *
  */
 
+use OC\Webfinger\WebfingerManager;
+use OCP\Webfinger\IWebfingerManager;
+
 require_once __DIR__ . '/lib/versioncheck.php';
 
 try {
@@ -55,7 +58,21 @@ try {
 		$pathInfo = trim($pathInfo, '/');
 		list($service) = explode('/', $pathInfo);
 	}
-	$file = \OC::$server->getConfig()->getAppValue('core', 'public_' . strip_tags($service));
+
+	if (strtolower($service) === 'webfinger') {
+		OC_App::loadApps();
+		try {
+			/** @var IWebfingerManager $manager */
+			$manager = \OC::$server->query(WebfingerManager::class);
+			$manager->manageRequest($request);
+		} catch (Exception $e) {
+			http_response_code(404);
+		}
+		exit;
+	}
+
+	$file = \OC::$server->getConfig()
+						->getAppValue('core', 'public_' . strip_tags($service));
 	if ($file === '') {
 		http_response_code(404);
 		exit;
@@ -69,7 +86,8 @@ try {
 	OC_App::loadApps(['authentication']);
 	OC_App::loadApps(['filesystem', 'logging']);
 
-	if (!\OC::$server->getAppManager()->isInstalled($app)) {
+	if (!\OC::$server->getAppManager()
+					 ->isInstalled($app)) {
 		http_response_code(404);
 		exit;
 	}
@@ -85,10 +103,12 @@ try {
 		$status = 503;
 	}
 	//show the user a detailed error page
-	\OC::$server->getLogger()->logException($ex, ['app' => 'public']);
+	\OC::$server->getLogger()
+				->logException($ex, ['app' => 'public']);
 	OC_Template::printExceptionErrorPage($ex, $status);
 } catch (Error $ex) {
 	//show the user a detailed error page
-	\OC::$server->getLogger()->logException($ex, ['app' => 'public']);
+	\OC::$server->getLogger()
+				->logException($ex, ['app' => 'public']);
 	OC_Template::printExceptionErrorPage($ex, 500);
 }

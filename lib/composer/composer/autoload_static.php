@@ -7,7 +7,7 @@ namespace Composer\Autoload;
 class ComposerStaticInit53792487c5a8370acc0b06b1a864ff4c
 {
     public static $prefixLengthsPsr4 = array (
-        'O' => 
+        'O' =>
         array (
             'OC\\Core\\' => 8,
             'OC\\' => 3,
@@ -16,15 +16,15 @@ class ComposerStaticInit53792487c5a8370acc0b06b1a864ff4c
     );
 
     public static $prefixDirsPsr4 = array (
-        'OC\\Core\\' => 
+        'OC\\Core\\' =>
         array (
             0 => __DIR__ . '/../../..' . '/core',
         ),
-        'OC\\' => 
+        'OC\\' =>
         array (
             0 => __DIR__ . '/../../..' . '/lib/private',
         ),
-        'OCP\\' => 
+        'OCP\\' =>
         array (
             0 => __DIR__ . '/../../..' . '/lib/public',
         ),
@@ -551,6 +551,8 @@ class ComposerStaticInit53792487c5a8370acc0b06b1a864ff4c
         'OCP\\User\\Events\\UserLoggedInWithCookieEvent' => __DIR__ . '/../../..' . '/lib/public/User/Events/UserLoggedInWithCookieEvent.php',
         'OCP\\User\\Events\\UserLoggedOutEvent' => __DIR__ . '/../../..' . '/lib/public/User/Events/UserLoggedOutEvent.php',
         'OCP\\Util' => __DIR__ . '/../../..' . '/lib/public/Util.php',
+        'OCP\\Webfinger\\IWebfingerManager' => __DIR__ . '/../../..' . '/lib/public/Webfinger/IWebfingerManager.php',
+        'OCP\\Webfinger\\Model\\IWebfinger' => __DIR__ . '/../../..' . '/lib/public/Webfinger/Model/IWebfinger.php',
         'OCP\\WorkflowEngine\\EntityContext\\IDisplayName' => __DIR__ . '/../../..' . '/lib/public/WorkflowEngine/EntityContext/IDisplayName.php',
         'OCP\\WorkflowEngine\\EntityContext\\IDisplayText' => __DIR__ . '/../../..' . '/lib/public/WorkflowEngine/EntityContext/IDisplayText.php',
         'OCP\\WorkflowEngine\\EntityContext\\IIcon' => __DIR__ . '/../../..' . '/lib/public/WorkflowEngine/EntityContext/IIcon.php',
@@ -1376,6 +1378,10 @@ class ComposerStaticInit53792487c5a8370acc0b06b1a864ff4c
         'OC\\User\\NoUserException' => __DIR__ . '/../../..' . '/lib/private/User/NoUserException.php',
         'OC\\User\\Session' => __DIR__ . '/../../..' . '/lib/private/User/Session.php',
         'OC\\User\\User' => __DIR__ . '/../../..' . '/lib/private/User/User.php',
+        'OC\\Webfinger\\Event\\WebfingerEvent' => __DIR__ . '/../../..' . '/lib/private/Webfinger/Event/WebfingerEvent.php',
+        'OC\\Webfinger\\Exceptions\\WebfingerRequestException' => __DIR__ . '/../../..' . '/lib/private/Webfinger/Exceptions/WebfingerRequestException.php',
+        'OC\\Webfinger\\Model\\Webfinger' => __DIR__ . '/../../..' . '/lib/private/Webfinger/Model/Webfinger.php',
+        'OC\\Webfinger\\WebfingerManager' => __DIR__ . '/../../..' . '/lib/private/Webfinger/WebfingerManager.php',
         'OC_API' => __DIR__ . '/../../..' . '/lib/private/legacy/OC_API.php',
         'OC_App' => __DIR__ . '/../../..' . '/lib/private/legacy/OC_App.php',
         'OC_DB' => __DIR__ . '/../../..' . '/lib/private/legacy/OC_DB.php',
