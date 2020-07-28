@@ -31,6 +31,7 @@ use OCA\DAV\CalDAV\CalDavBackend;
 use OCA\DAV\CalDAV\Proxy\ProxyMapper;
 use OCA\DAV\Connector\Sabre\Principal;
 use OCP\App\IAppManager;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\ILogger;
@@ -61,8 +62,8 @@ abstract class AbstractCalDavBackend extends TestCase {
 	protected $userManager;
 	/** @var IGroupManager|\PHPUnit_Framework_MockObject_MockObject */
 	protected $groupManager;
-	/** @var EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject */
-	protected $dispatcher;
+	/** @var IEventDispatcher|\PHPUnit_Framework_MockObject_MockObject */
+	protected $legacyDispatcher;
 
 	/** @var ISecureRandom */
 	private $random;
@@ -79,7 +80,8 @@ abstract class AbstractCalDavBackend extends TestCase {
 
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+		$this->dispatcher = $this->createMock(IEventDispatcher::class);
+		$this->legacyDispatcher = $this->createMock(EventDispatcherInterface::class);
 		$this->principal = $this->getMockBuilder(Principal::class)
 			->setConstructorArgs([
 				$this->userManager,
@@ -104,7 +106,7 @@ abstract class AbstractCalDavBackend extends TestCase {
 		$db = \OC::$server->getDatabaseConnection();
 		$this->random = \OC::$server->getSecureRandom();
 		$this->logger = $this->createMock(ILogger::class);
-		$this->backend = new CalDavBackend($db, $this->principal, $this->userManager, $this->groupManager, $this->random, $this->logger, $this->dispatcher);
+		$this->backend = new CalDavBackend($db, $this->principal, $this->userManager, $this->groupManager, $this->random, $this->logger, $this->dispatcher, $this->legacyDispatcher);
 
 		$this->cleanUpBackend();
 	}
@@ -128,7 +130,7 @@ abstract class AbstractCalDavBackend extends TestCase {
 	private function cleanupForPrincipal($principal): void {
 		$calendars = $this->backend->getCalendarsForUser($principal);
 		foreach ($calendars as $calendar) {
-			$this->dispatcher->expects($this->at(0))
+			$this->legacyDispatcher->expects($this->at(0))
 				->method('dispatch')
 				->with('\OCA\DAV\CalDAV\CalDavBackend::deleteCalendar');
 
@@ -141,7 +143,7 @@ abstract class AbstractCalDavBackend extends TestCase {
 	}
 
 	protected function createTestCalendar() {
-		$this->dispatcher->expects($this->at(0))
+		$this->legacyDispatcher->expects($this->at(0))
 			->method('dispatch')
 			->with('\OCA\DAV\CalDAV\CalDavBackend::createCalendar');
 
@@ -198,7 +200,7 @@ END:VCALENDAR
 EOD;
 		$uri0 = $this->getUniqueID('event');
 
-		$this->dispatcher->expects($this->at(0))
+		$this->legacyDispatcher->expects($this->at(0))
 			->method('dispatch')
 			->with('\OCA\DAV\CalDAV\CalDavBackend::createCalendarObject');
 
