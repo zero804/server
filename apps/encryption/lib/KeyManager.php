@@ -186,6 +186,7 @@ class KeyManager {
 				$this->lockingProvider->releaseLock('encryption-generateSharedKey', ILockingProvider::LOCK_EXCLUSIVE);
 				throw $e;
 			}
+			$this->lockingProvider->releaseLock('encryption-generateSharedKey', ILockingProvider::LOCK_EXCLUSIVE);
 		}
 	}
 
@@ -221,6 +222,7 @@ class KeyManager {
 				$this->lockingProvider->releaseLock('encryption-generateMasterKey', ILockingProvider::LOCK_EXCLUSIVE);
 				throw $e;
 			}
+			$this->lockingProvider->releaseLock('encryption-generateMasterKey', ILockingProvider::LOCK_EXCLUSIVE);
 		} elseif (empty($publicMasterKey)) {
 			$this->log->error('A private master key is available but the public key could not be found. This should never happen.');
 			return;
