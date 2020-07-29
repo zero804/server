@@ -71,15 +71,42 @@ class WebfingerManager implements IWebfingerManager {
 	public function manageRequest(IRequest $request): void {
 		$resource = $request->getParam('resource', '');
 		if ($resource === '') {
-			throw new WebfingerRequestException('missing resource');
+			throw new WebfingerRequestException(400, 'missing resource');
 		}
 
 		$webfinger = new Webfinger($resource);
 
 		$this->dispatch('onRequest', new WebfingerEvent($webfinger));
 
+		if ($this->isEmpty($webfinger)) {
+			throw new WebfingerRequestException(404);
+		}
+
 		header('Content-type: application/json');
 		echo json_encode($webfinger) . "\n";
+	}
+
+
+	/**
+	 * @param Webfinger $webfinger
+	 *
+	 * @return bool
+	 * @since 20.0.0
+	 */
+	private function isEmpty(Webfinger $webfinger): bool {
+		if (!empty($webfinger->getLinks())) {
+			return false;
+		}
+
+		if (!empty($webfinger->getProperties())) {
+			return false;
+		}
+
+		if (!empty($webfinger->getAliases())) {
+			return false;
+		}
+
+		return true;
 	}
 
 

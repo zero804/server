@@ -29,9 +29,42 @@ namespace OC\Webfinger\Exceptions;
 
 
 use Exception;
+use Throwable;
 
 
+/**
+ * Class WebfingerRequestException
+ *
+ * @package OC\Webfinger\Exceptions
+ * @since 20.0.0
+ */
 class WebfingerRequestException extends Exception {
+
+	/** @var int */
+	private $errorCode = 404;
+
+
+	/**
+	 * WebfingerRequestException constructor.
+	 *
+	 * @param int $errorCode
+	 * @param string $message
+	 * @param int $code
+	 * @param Throwable|null $previous
+	 */
+	public function __construct($errorCode = 404, $message = "", $code = 0, Throwable $previous = null) {
+		parent::__construct($message, $code, $previous);
+		$this->errorCode = $errorCode;
+	}
+
+
+	/**
+	 * @return int
+	 * @since 20.0.0
+	 */
+	public function getErrorCode(): int {
+		return $this->errorCode;
+	}
 
 }
 

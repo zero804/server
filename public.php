@@ -31,6 +31,7 @@
  *
  */
 
+use OC\Webfinger\Exceptions\WebfingerRequestException;
 use OC\Webfinger\WebfingerManager;
 use OCP\Webfinger\IWebfingerManager;
 
@@ -65,8 +66,8 @@ try {
 			/** @var IWebfingerManager $manager */
 			$manager = \OC::$server->query(WebfingerManager::class);
 			$manager->manageRequest($request);
-		} catch (Exception $e) {
-			http_response_code(404);
+		} catch (WebfingerRequestException $e) {
+			http_response_code($e->getErrorCode());
 		}
 		exit;
 	}
