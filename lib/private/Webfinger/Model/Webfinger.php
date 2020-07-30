@@ -30,7 +30,6 @@ namespace OC\Webfinger\Model;
 use JsonSerializable;
 use OCP\Webfinger\Model\IWebfinger;
 
-
 /**
  * @since 20.0.0
  *
@@ -177,6 +176,4 @@ final class Webfinger implements IWebfinger, JsonSerializable {
 
 		return array_filter($data);
 	}
-
 }
-

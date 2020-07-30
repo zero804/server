@@ -26,10 +26,8 @@ declare(strict_types=1);
 
 namespace OC\Webfinger\Event;
 
-
 use OCP\EventDispatcher\Event;
 use OCP\Webfinger\Model\IWebfinger;
-
 
 /**
  * Class WebfingerEvent
@@ -65,6 +63,4 @@ class WebfingerEvent extends Event {
 	public function getWebfinger(): IWebfinger {
 		return $this->webfinger;
 	}
-
 }
-

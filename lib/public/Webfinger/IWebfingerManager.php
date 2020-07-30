@@ -26,7 +26,6 @@ declare(strict_types=1);
 
 namespace OCP\Webfinger;
 
-
 use OC\Webfinger\Exceptions\WebfingerRequestException;
 use OCP\IRequest;
 
@@ -48,8 +47,4 @@ interface IWebfingerManager {
 	 * @since 20.0.0
 	 */
 	public function manageRequest(IRequest $request): void;
-
 }
-
-
-

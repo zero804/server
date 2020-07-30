@@ -26,14 +26,12 @@ declare(strict_types=1);
 
 namespace OC\Webfinger;
 
-
 use OC\Webfinger\Event\WebfingerEvent;
 use OC\Webfinger\Exceptions\WebfingerRequestException;
 use OC\Webfinger\Model\Webfinger;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IRequest;
 use OCP\Webfinger\IWebfingerManager;
-
 
 /**
  * @since 20.0.0
@@ -119,6 +117,4 @@ class WebfingerManager implements IWebfingerManager {
 	private function dispatch(string $context, WebfingerEvent $event) {
 		$this->eventDispatcher->dispatch('\OC\Webfinger::' . $context, $event);
 	}
-
 }
-

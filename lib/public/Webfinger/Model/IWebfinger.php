@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -26,9 +27,7 @@ declare(strict_types=1);
 
 namespace OCP\Webfinger\Model;
 
-
 use JsonSerializable;
-
 
 /**
  * @since 20.0.0
@@ -105,5 +104,4 @@ interface IWebfinger {
 	 * @since 20.0.0
 	 */
 	public function getLinks(): array;
-
 }

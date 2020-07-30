@@ -27,10 +27,8 @@ declare(strict_types=1);
 
 namespace OC\Webfinger\Exceptions;
 
-
 use Exception;
 use Throwable;
-
 
 /**
  * Class WebfingerRequestException
@@ -41,7 +39,7 @@ use Throwable;
 class WebfingerRequestException extends Exception {
 
 	/** @var int */
-	private $errorCode = 404;
+	private $errorCode;
 
 
 	/**
@@ -65,6 +63,4 @@ class WebfingerRequestException extends Exception {
 	public function getErrorCode(): int {
 		return $this->errorCode;
 	}
-
 }
-
