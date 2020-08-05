@@ -33,6 +33,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 use OCP\Share\IShare;
+use OCP\UserStatus\IManager as IUserStatusManager;
 use Test\TestCase;
 
 class UserPluginTest extends TestCase {
@@ -47,6 +48,9 @@ class UserPluginTest extends TestCase {
 
 	/** @var  IUserSession|\PHPUnit_Framework_MockObject_MockObject */
 	protected $session;
+
+	/** @var IUserStatusManager|\PHPUnit\Framework\MockObject\MockObject */
+	protected $userStatusManager;
 
 	/** @var  UserPlugin */
 	protected $plugin;
@@ -74,6 +78,8 @@ class UserPluginTest extends TestCase {
 
 		$this->session = $this->createMock(IUserSession::class);
 
+		$this->userStatusManager = $this->createMock(IUserStatusManager::class);
+
 		$this->searchResult = new SearchResult();
 
 		$this->user = $this->getUserMock('admin', 'Administrator');
@@ -86,7 +92,8 @@ class UserPluginTest extends TestCase {
 			$this->config,
 			$this->userManager,
 			$this->groupManager,
-			$this->session
+			$this->session,
+			$this->userStatusManager
 		);
 	}
 
