@@ -116,7 +116,7 @@ class UserPlugin implements ISearchPlugin {
 
 		$foundUserById = false;
 		$lowerSearch = strtolower($search);
-		$userStatuses = $this->userStatusManager->getUserStatuses(array_values($users));
+		$userStatuses = $this->userStatusManager->getUserStatuses(array_keys($users));
 		foreach ($users as $uid => $user) {
 			$userDisplayName = $user->getDisplayName();
 			$userEmail = $user->getEMailAddress();
