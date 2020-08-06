@@ -1,4 +1,7 @@
-<div class="section">
+<div class="section development-notice">
+	<p>
+		<button class="link-button icon-file">Reasons to use Nextcloud in your organization</button>
+	</p>
 	<p>
 		<?php print_unescaped(str_replace(
 			[
