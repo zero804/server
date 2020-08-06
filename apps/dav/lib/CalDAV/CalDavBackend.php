@@ -787,7 +787,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$calendarId = $query->getLastInsertId();
 
 		$calendarData = $this->getCalendarById($calendarId);
-		$this->dispatcher->dispatchTyped(new CalendarCreatedEvent($calendarId, $calendarData));
+		$this->dispatcher->dispatchTyped(new CalendarCreatedEvent((int)$calendarId, $calendarData));
 		$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::createCalendar', new GenericEvent(
 			'\OCA\DAV\CalDAV\CalDavBackend::createCalendar',
 			[
@@ -847,7 +847,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 
 			$calendarData = $this->getCalendarById($calendarId);
 			$shares = $this->getShares($calendarId);
-			$this->dispatcher->dispatchTyped(new CalendarUpdatedEvent($calendarId, $calendarData, $shares, $mutations));
+			$this->dispatcher->dispatchTyped(new CalendarUpdatedEvent((int)$calendarId, $calendarData, $shares, $mutations));
 			$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::updateCalendar', new GenericEvent(
 				'\OCA\DAV\CalDAV\CalDavBackend::updateCalendar',
 				[
@@ -896,7 +896,9 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter(self::CALENDAR_TYPE_CALENDAR)))
 			->execute();
 
-		$this->dispatcher->dispatchTyped(new CalendarDeletedEvent($calendarId, $calendarData, $shares));
+		if ($calendarData) {
+			$this->dispatcher->dispatchTyped(new CalendarDeletedEvent((int)$calendarId, $calendarData, $shares));
+		}
 	}
 
 	/**
@@ -1124,7 +1126,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			$calendarRow = $this->getCalendarById($calendarId);
 			$shares = $this->getShares($calendarId);
 
-			$this->dispatcher->dispatchTyped(new CalendarObjectCreatedEvent($calendarId, $calendarRow, $shares, $objectRow));
+			$this->dispatcher->dispatchTyped(new CalendarObjectCreatedEvent((int)$calendarId, $calendarRow, $shares, $objectRow));
 			$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::createCalendarObject', new GenericEvent(
 				'\OCA\DAV\CalDAV\CalDavBackend::createCalendarObject',
 				[
@@ -1137,7 +1139,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		} else {
 			$subscriptionRow = $this->getSubscriptionById($calendarId);
 
-			$this->dispatcher->dispatchTyped(new CachedCalendarObjectCreatedEvent($calendarId, $subscriptionRow, [], $objectRow));
+			$this->dispatcher->dispatchTyped(new CachedCalendarObjectCreatedEvent((int)$calendarId, $subscriptionRow, [], $objectRow));
 			$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::createCachedCalendarObject', new GenericEvent(
 				'\OCA\DAV\CalDAV\CalDavBackend::createCachedCalendarObject',
 				[
@@ -1198,7 +1200,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				$calendarRow = $this->getCalendarById($calendarId);
 				$shares = $this->getShares($calendarId);
 
-				$this->dispatcher->dispatchTyped(new CalendarObjectUpdatedEvent($calendarId, $calendarRow, $shares, $objectRow));
+				$this->dispatcher->dispatchTyped(new CalendarObjectUpdatedEvent((int)$calendarId, $calendarRow, $shares, $objectRow));
 				$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::updateCalendarObject', new GenericEvent(
 					'\OCA\DAV\CalDAV\CalDavBackend::updateCalendarObject',
 					[
@@ -1211,7 +1213,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			} else {
 				$subscriptionRow = $this->getSubscriptionById($calendarId);
 
-				$this->dispatcher->dispatchTyped(new CachedCalendarObjectUpdatedEvent($calendarId, $subscriptionRow, [], $objectRow));
+				$this->dispatcher->dispatchTyped(new CachedCalendarObjectUpdatedEvent((int)$calendarId, $subscriptionRow, [], $objectRow));
 				$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::updateCachedCalendarObject', new GenericEvent(
 					'\OCA\DAV\CalDAV\CalDavBackend::updateCachedCalendarObject',
 					[
@@ -1261,7 +1263,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				$calendarRow = $this->getCalendarById($calendarId);
 				$shares = $this->getShares($calendarId);
 
-				$this->dispatcher->dispatchTyped(new CalendarObjectDeletedEvent($calendarId, $calendarRow, $shares, $data));
+				$this->dispatcher->dispatchTyped(new CalendarObjectDeletedEvent((int)$calendarId, $calendarRow, $shares, $data));
 				$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::deleteCalendarObject', new GenericEvent(
 					'\OCA\DAV\CalDAV\CalDavBackend::deleteCalendarObject',
 					[
@@ -1274,7 +1276,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			} else {
 				$subscriptionRow = $this->getSubscriptionById($calendarId);
 
-				$this->dispatcher->dispatchTyped(new CachedCalendarObjectDeletedEvent($calendarId, $subscriptionRow, [], $data));
+				$this->dispatcher->dispatchTyped(new CachedCalendarObjectDeletedEvent((int)$calendarId, $subscriptionRow, [], $data));
 				$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::deleteCachedCalendarObject', new GenericEvent(
 					'\OCA\DAV\CalDAV\CalDavBackend::deleteCachedCalendarObject',
 					[
@@ -2116,7 +2118,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 		$subscriptionId = $this->db->lastInsertId('*PREFIX*calendarsubscriptions');
 
 		$subscriptionRow = $this->getSubscriptionById($subscriptionId);
-		$this->dispatcher->dispatchTyped(new SubscriptionCreatedEvent($subscriptionId, $subscriptionRow));
+		$this->dispatcher->dispatchTyped(new SubscriptionCreatedEvent((int)$subscriptionId, $subscriptionRow));
 		$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::createSubscription', new GenericEvent(
 			'\OCA\DAV\CalDAV\CalDavBackend::createSubscription',
 			[
@@ -2172,7 +2174,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				->execute();
 
 			$subscriptionRow = $this->getSubscriptionById($subscriptionId);
-			$this->dispatcher->dispatchTyped(new SubscriptionUpdatedEvent($subscriptionId, $subscriptionRow, [], $mutations));
+			$this->dispatcher->dispatchTyped(new SubscriptionUpdatedEvent((int)$subscriptionId, $subscriptionRow, [], $mutations));
 			$this->legacyDispatcher->dispatch('\OCA\DAV\CalDAV\CalDavBackend::updateSubscription', new GenericEvent(
 				'\OCA\DAV\CalDAV\CalDavBackend::updateSubscription',
 				[
@@ -2222,7 +2224,9 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->andWhere($query->expr()->eq('calendartype', $query->createNamedParameter(self::CALENDAR_TYPE_SUBSCRIPTION)))
 			->execute();
 
-		$this->dispatcher->dispatchTyped(new SubscriptionDeletedEvent($subscriptionId, $subscriptionRow, []));
+		if ($subscriptionRow) {
+			$this->dispatcher->dispatchTyped(new SubscriptionDeletedEvent((int)$subscriptionId, $subscriptionRow, []));
+		}
 	}
 
 	/**
@@ -2489,7 +2493,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			]));
 		$this->calendarSharingBackend->updateShares($shareable, $add, $remove);
 
-		$this->dispatcher->dispatchTyped(new CalendarShareUpdatedEvent($calendarId, $calendarRow, $oldShares, $add, $remove));
+		$this->dispatcher->dispatchTyped(new CalendarShareUpdatedEvent((int)$calendarId, $calendarRow, $oldShares, $add, $remove));
 	}
 
 	/**
@@ -2530,7 +2534,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 				]);
 			$query->execute();
 
-			$this->dispatcher->dispatchTyped(new CalendarPublishedEvent($calendarId, $calendarData, $publicUri));
+			$this->dispatcher->dispatchTyped(new CalendarPublishedEvent((int)$calendarId, $calendarData, $publicUri));
 			return $publicUri;
 		}
 		$query->delete('dav_shares')
@@ -2538,7 +2542,7 @@ class CalDavBackend extends AbstractBackend implements SyncSupport, Subscription
 			->andWhere($query->expr()->eq('access', $query->createNamedParameter(self::ACCESS_PUBLIC)));
 		$query->execute();
 
-		$this->dispatcher->dispatchTyped(new CalendarUnpublishedEvent($calendarId, $calendarData));
+		$this->dispatcher->dispatchTyped(new CalendarUnpublishedEvent((int)$calendarId, $calendarData));
 		return null;
 	}
 
