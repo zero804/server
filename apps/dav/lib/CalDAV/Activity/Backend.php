@@ -430,7 +430,7 @@ class Backend {
 		$event = $this->activityManager->generateEvent();
 		$event->setApp('dav')
 			->setObject('calendar', (int) $calendarData['id'])
-			->setType($object['type'] === 'event' ? 'calendar_event' : 'calendar_todo')
+			->setType('calendar')
 			->setAuthor($currentUser);
 
 		$users = $this->getUsersForShares($shares);

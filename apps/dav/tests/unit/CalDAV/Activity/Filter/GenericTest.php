@@ -25,7 +25,6 @@
 namespace OCA\DAV\Tests\unit\CalDAV\Activity\Filter;
 
 use OCA\DAV\CalDAV\Activity\Filter\Calendar;
-use OCA\DAV\CalDAV\Activity\Filter\Todo;
 use OCP\Activity\IFilter;
 use Test\TestCase;
 
@@ -36,7 +35,6 @@ class GenericTest extends TestCase {
 	public function dataFilters() {
 		return [
 			[Calendar::class],
-			[Todo::class],
 		];
 	}
 

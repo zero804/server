@@ -81,7 +81,7 @@ class Calendar implements IFilter {
 	 * @since 11.0.0
 	 */
 	public function filterTypes(array $types) {
-		return array_intersect(['calendar', 'calendar_event'], $types);
+		return array_intersect(['calendar', 'calendar_event', 'calendar_todo'], $types);
 	}
 
 	/**

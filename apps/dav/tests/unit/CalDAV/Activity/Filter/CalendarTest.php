@@ -73,7 +73,7 @@ class CalendarTest extends TestCase {
 		return [
 			[[], []],
 			[['calendar', 'calendar_event'], ['calendar', 'calendar_event']],
-			[['calendar', 'calendar_event', 'calendar_todo'], ['calendar', 'calendar_event']],
+			[['calendar', 'calendar_event', 'calendar_todo'], ['calendar', 'calendar_event', 'calendar_todo']],
 			[['calendar', 'calendar_event', 'files'], ['calendar', 'calendar_event']],
 		];
 	}

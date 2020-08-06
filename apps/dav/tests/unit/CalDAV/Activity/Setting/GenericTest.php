@@ -25,8 +25,6 @@
 namespace OCA\DAV\Tests\unit\CalDAV\Activity\Setting;
 
 use OCA\DAV\CalDAV\Activity\Setting\Calendar;
-use OCA\DAV\CalDAV\Activity\Setting\Event;
-use OCA\DAV\CalDAV\Activity\Setting\Todo;
 use OCP\Activity\ISetting;
 use Test\TestCase;
 
@@ -34,8 +32,6 @@ class GenericTest extends TestCase {
 	public function dataSettings() {
 		return [
 			[Calendar::class],
-			[Event::class],
-			[Todo::class],
 		];
 	}
 

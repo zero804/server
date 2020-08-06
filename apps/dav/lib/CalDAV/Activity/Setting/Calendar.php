@@ -51,7 +51,7 @@ class Calendar implements ISetting {
 	 * @since 11.0.0
 	 */
 	public function getName() {
-		return $this->l->t('A <strong>calendar</strong> was modified');
+		return $this->l->t('A <strong>calendar</strong>, <strong>event</strong> or <strong>todo</strong> was modified');
 	}
 
 	/**

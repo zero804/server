@@ -119,7 +119,7 @@ class Event extends Base {
 	 * @since 11.0.0
 	 */
 	public function parse($language, IEvent $event, IEvent $previousEvent = null) {
-		if ($event->getApp() !== 'dav' || $event->getType() !== 'calendar_event') {
+		if ($event->getApp() !== 'dav' || ($event->getType() !== 'calendar' && $event->getType() !== 'calendar_event')) {
 			throw new \InvalidArgumentException();
 		}
 
