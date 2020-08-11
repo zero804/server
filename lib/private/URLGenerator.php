@@ -44,6 +44,7 @@ use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\Route\IRouter;
 use RuntimeException;
 
 /**
@@ -56,18 +57,17 @@ class URLGenerator implements IURLGenerator {
 	private $cacheFactory;
 	/** @var IRequest */
 	private $request;
+	/** @var IRouter*/
+	private $router;
 
-	/**
-	 * @param IConfig $config
-	 * @param ICacheFactory $cacheFactory
-	 * @param IRequest $request
-	 */
 	public function __construct(IConfig $config,
 								ICacheFactory $cacheFactory,
-								IRequest $request) {
+								IRequest $request,
+								IRouter $router) {
 		$this->config = $config;
 		$this->cacheFactory = $cacheFactory;
 		$this->request = $request;
+		$this->router = $router;
 	}
 
 	/**
@@ -79,8 +79,7 @@ class URLGenerator implements IURLGenerator {
 	 * Returns a url to the given route.
 	 */
 	public function linkToRoute(string $route, array $parameters = []): string {
-		// TODO: mock router
-		return \OC::$server->getRouter()->generate($route, $parameters);
+		return $this->router->generate($route, $parameters);
 	}
 
 	/**
@@ -96,7 +95,7 @@ class URLGenerator implements IURLGenerator {
 	}
 
 	public function linkToOCSRouteAbsolute(string $routeName, array $arguments = []): string {
-		$route = \OC::$server->getRouter()->generate('ocs.'.$routeName, $arguments, false);
+		$route = $this->router->generate('ocs.'.$routeName, $arguments, false);
 
 		$indexPhpPos = strpos($route, '/index.php/');
 		if ($indexPhpPos !== false) {

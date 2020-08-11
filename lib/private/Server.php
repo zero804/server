@@ -643,16 +643,7 @@ class Server extends ServerContainer implements IServerContainer {
 		});
 		$this->registerDeprecatedAlias('L10NFactory', IFactory::class);
 
-		$this->registerService(IURLGenerator::class, function (Server $c) {
-			$config = $c->getConfig();
-			$cacheFactory = $c->getMemCacheFactory();
-			$request = $c->getRequest();
-			return new \OC\URLGenerator(
-				$config,
-				$cacheFactory,
-				$request
-			);
-		});
+		$this->registerAlias(IURLGenerator::class, URLGenerator::class);
 		$this->registerDeprecatedAlias('URLGenerator', IURLGenerator::class);
 
 		$this->registerDeprecatedAlias('AppFetcher', AppFetcher::class);
