@@ -36,10 +36,8 @@ use OCP\Security\ICrypto;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class MigrateKeyStorage extends Command {
 
@@ -143,7 +141,6 @@ class MigrateKeyStorage extends Command {
 					$endsWith($node['name'], '.privateKey') ||
 					$endsWith($node['name'], '.publicKey') ||
 					$endsWith($node['name'], 'shareKey')) {
-
 					$path = $folder . '/' . $node['name'];
 
 					$content = $this->rootView->file_get_contents($path);
