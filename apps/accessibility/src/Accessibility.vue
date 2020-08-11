@@ -90,6 +90,7 @@ export default {
 		// SELECT handlers
 		selectHighContrast(id) {
 			this.selectItem('highcontrast', id)
+			document.body.classList.toggle('theme--highcontrast')
 		},
 		selectTheme(id) {
 			const previous = this.selected.theme

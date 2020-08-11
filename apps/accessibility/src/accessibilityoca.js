@@ -25,3 +25,7 @@ OCA.Accessibility = loadState('accessibility', 'data')
 if (OCA.Accessibility.theme !== false) {
 	document.body.classList.add(OCA.Accessibility.theme)
 }
+
+if (OCA.Accessibility.highcontrast !== false) {
+	document.body.classList.add('theme--highcontrast')
+}
