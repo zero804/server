@@ -241,7 +241,22 @@ class Storage implements IStorage {
 							throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
 						}
 					} else {
-						$key = $data;
+						/*
+						 * Even if not all keys are migrated we should still try to decrypt it (in case some have moved).
+						 * However it is only a failure now if it is an array and decryption fails
+						 */
+						$dataArray = json_decode($data, true);
+						if ($dataArray !== null) {
+							try {
+								$key = $this->crypto->decrypt(base64_decode($dataArray['key']));
+							} catch (\Exception $e) {
+								throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
+							}
+						} else {
+							// If it is an old key we do live migration
+							$key = $data;
+							$this->setKey($path, $key);
+						}
 					}
 				}
 
@@ -263,14 +278,17 @@ class Storage implements IStorage {
 	private function setKey($path, $key) {
 		$this->keySetPreparation(dirname($path));
 
-		if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
+		$versionFromBeforeUpdate = $this->config->getSystemValue('version', '0.0.0.0');
+		if (version_compare($versionFromBeforeUpdate, '20.0.0.0', '<=')) {
+			// Only store old format if this happens during the migration.
+			// TODO: Remove for 21
+			$data = $key;
+		} else {
 			// Wrap the data
 			$data = [
 				'key' => base64_encode($this->crypto->encrypt($key)),
 			];
 			$data = json_encode($data);
-		} else {
-			$data = $key;
 		}
 
 		$result = $this->view->file_put_contents($path, $data);
