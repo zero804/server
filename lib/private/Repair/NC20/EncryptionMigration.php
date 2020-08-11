@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace OC\Repair\NC20;
 
-use OC\Encryption\Manager;
+use OCP\Encryption\IManager;
 use OCP\IConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -34,13 +34,11 @@ class EncryptionMigration implements IRepairStep {
 
 	/** @var IConfig */
 	private $config;
-	/**
-	 * @var Manager
-	 */
+	/** @var IManager */
 	private $manager;
 
 	public function __construct(IConfig $config,
-								Manager $manager) {
+								IManager $manager) {
 		$this->config = $config;
 		$this->manager = $manager;
 	}
@@ -51,7 +49,7 @@ class EncryptionMigration implements IRepairStep {
 
 	private function shouldRun(): bool {
 		$versionFromBeforeUpdate = $this->config->getSystemValue('version', '0.0.0.0');
-		return version_compare($versionFromBeforeUpdate, '18.0.0.5', '<=');
+		return version_compare($versionFromBeforeUpdate, '20.0.0.0', '<=');
 	}
 
 	public function run(IOutput $output): void {

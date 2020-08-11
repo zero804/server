@@ -225,18 +225,24 @@ class Storage implements IStorage {
 			} else {
 				$data = $this->view->file_get_contents($path);
 
-				if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
-					$dataArray = json_decode($data, true);
-					if ($dataArray === null) {
-						throw new ServerNotAvailableException('Invalid encryption key');
-					}
-					try {
-						$key = $this->crypto->decrypt(base64_decode($dataArray['key']));
-					} catch (\Exception $e) {
-						throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
-					}
-				} else {
+				// Version <20.0.0.1 doesn't have this
+				$versionFromBeforeUpdate = $this->config->getSystemValue('version', '0.0.0.0');
+				if (version_compare($versionFromBeforeUpdate, '20.0.0.0', '<=')) {
 					$key = $data;
+				} else {
+					if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
+						$dataArray = json_decode($data, true);
+						if ($dataArray === null) {
+							throw new ServerNotAvailableException('Invalid encryption key');
+						}
+						try {
+							$key = $this->crypto->decrypt(base64_decode($dataArray['key']));
+						} catch (\Exception $e) {
+							throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
+						}
+					} else {
+						$key = $data;
+					}
 				}
 
 				$this->keyCache[$path] = $key;
