@@ -92,7 +92,7 @@ class Storage implements IStorage {
 	 */
 	public function getUserKey($uid, $keyId, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, $uid);
-		return $this->getKey($path);
+		return $this->getKeyWithUid($path, $uid);
 	}
 
 	/**
@@ -101,17 +101,17 @@ class Storage implements IStorage {
 	public function getFileKey($path, $keyId, $encryptionModuleId) {
 		$realFile = $this->util->stripPartialFileExtension($path);
 		$keyDir = $this->getFileKeyDir($encryptionModuleId, $realFile);
-		$key = $this->getKey($keyDir . $keyId);
+		$key = $this->getKey($keyDir . $keyId)['key'];
 
 		if ($key === '' && $realFile !== $path) {
 			// Check if the part file has keys and use them, if no normal keys
 			// exist. This is required to fix copyBetweenStorage() when we
 			// rename a .part file over storage borders.
 			$keyDir = $this->getFileKeyDir($encryptionModuleId, $path);
-			$key = $this->getKey($keyDir . $keyId);
+			$key = $this->getKey($keyDir . $keyId)['key'];
 		}
 
-		return $key;
+		return base64_decode($key);
 	}
 
 	/**
@@ -119,7 +119,7 @@ class Storage implements IStorage {
 	 */
 	public function getSystemUserKey($keyId, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, null);
-		return $this->getKey($path);
+		return $this->getKeyWithUid($path, null);
 	}
 
 	/**
@@ -127,7 +127,10 @@ class Storage implements IStorage {
 	 */
 	public function setUserKey($uid, $keyId, $key, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, $uid);
-		return $this->setKey($path, $key);
+		return $this->setKey($path, [
+			'key' => $key,
+			'uid' => $uid,
+		]);
 	}
 
 	/**
@@ -135,7 +138,9 @@ class Storage implements IStorage {
 	 */
 	public function setFileKey($path, $keyId, $key, $encryptionModuleId) {
 		$keyDir = $this->getFileKeyDir($encryptionModuleId, $path);
-		return $this->setKey($keyDir . $keyId, $key);
+		return $this->setKey($keyDir . $keyId, [
+			'key' => base64_encode($key),
+		]);
 	}
 
 	/**
@@ -143,7 +148,10 @@ class Storage implements IStorage {
 	 */
 	public function setSystemUserKey($keyId, $key, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, null);
-		return $this->setKey($path, $key);
+		return $this->setKey($path, [
+			'key' => $key,
+			'uid' => null,
+		]);
 	}
 
 	/**
@@ -211,13 +219,44 @@ class Storage implements IStorage {
 	}
 
 	/**
+	 * @param string $path
+	 * @param string|null $uid
+	 * @return string
+	 * @throws ServerNotAvailableException
+	 *
+	 * Small helper function to fetch the key and verify the value for user and system keys
+	 */
+	private function getKeyWithUid(string $path, ?string $uid): string {
+		$data = $this->getKey($path);
+
+		if (!isset($data['key'])) {
+			throw new ServerNotAvailableException('Key is invalid');
+		}
+
+		if (!isset($data['uid']) || $data['uid'] !== $uid) {
+			// If the migration is done we error out
+			if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
+				throw new ServerNotAvailableException('Key has been modified');
+			} else {
+				//Otherwise we migrate
+				$data['uid'] = $uid;
+				$this->setKey($path, $data);
+			}
+		}
+
+		return $data['key'];
+	}
+
+	/**
 	 * read key from hard disk
 	 *
 	 * @param string $path to key
-	 * @return string
+	 * @return array containing key as base64encoded key, and possible the uid or 'system' property set
 	 */
-	private function getKey($path) {
-		$key = '';
+	private function getKey($path): array {
+		$key = [
+			'key' => '',
+		];
 
 		if ($this->view->file_exists($path)) {
 			if (isset($this->keyCache[$path])) {
@@ -228,34 +267,46 @@ class Storage implements IStorage {
 				// Version <20.0.0.1 doesn't have this
 				$versionFromBeforeUpdate = $this->config->getSystemValue('version', '0.0.0.0');
 				if (version_compare($versionFromBeforeUpdate, '20.0.0.0', '<=')) {
-					$key = $data;
+					$key = [
+						'key' => $data,
+					];
 				} else {
 					if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
-						$dataArray = json_decode($data, true);
-						if ($dataArray === null) {
-							throw new ServerNotAvailableException('Invalid encryption key');
-						}
+
 						try {
-							$key = $this->crypto->decrypt(base64_decode($dataArray['key']));
+							$clearData = $this->crypto->decrypt(base64_decode($data));
 						} catch (\Exception $e) {
 							throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
 						}
+
+						$dataArray = json_decode($clearData, true);
+						if ($dataArray === null) {
+							throw new ServerNotAvailableException('Invalid encryption key');
+						}
+
+						$key = $dataArray;
 					} else {
 						/*
 						 * Even if not all keys are migrated we should still try to decrypt it (in case some have moved).
 						 * However it is only a failure now if it is an array and decryption fails
 						 */
-						$dataArray = json_decode($data, true);
-						if ($dataArray !== null) {
-							try {
-								$key = $this->crypto->decrypt(base64_decode($dataArray['key']));
-							} catch (\Exception $e) {
-								throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
+						$fallback = false;
+						try {
+							$clearData = $this->crypto->decrypt(base64_decode($data));
+						} catch (\Exception $e) {
+							$fallback = true;
+						}
+
+						if (!$fallback) {
+							$dataArray = json_decode($clearData, true);
+							if ($dataArray === null) {
+								throw new ServerNotAvailableException('Invalid encryption key');
 							}
+							$key = $dataArray;
 						} else {
-							// If it is an old key we do live migration
-							$key = $data;
-							$this->setKey($path, $key);
+							$key = [
+								'key' => $data,
+							];
 						}
 					}
 				}
@@ -272,7 +323,7 @@ class Storage implements IStorage {
 	 *
 	 *
 	 * @param string $path path to key directory
-	 * @param string $key key
+	 * @param array $key key
 	 * @return bool
 	 */
 	private function setKey($path, $key) {
@@ -282,13 +333,10 @@ class Storage implements IStorage {
 		if (version_compare($versionFromBeforeUpdate, '20.0.0.0', '<=')) {
 			// Only store old format if this happens during the migration.
 			// TODO: Remove for 21
-			$data = $key;
+			$data = $key['key'];
 		} else {
 			// Wrap the data
-			$data = [
-				'key' => base64_encode($this->crypto->encrypt($key)),
-			];
-			$data = json_encode($data);
+			$data = base64_encode($this->crypto->encrypt(json_encode($key)));
 		}
 
 		$result = $this->view->file_put_contents($path, $data);
