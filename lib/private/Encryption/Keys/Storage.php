@@ -255,7 +255,7 @@ class Storage implements IStorage {
 	 * read key from hard disk
 	 *
 	 * @param string $path to key
-	 * @return array containing key as base64encoded key, and possible the uid or 'system' property set
+	 * @return array containing key as base64encoded key, and possible the uid
 	 */
 	private function getKey($path): array {
 		$key = [
