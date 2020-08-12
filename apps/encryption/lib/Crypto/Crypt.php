@@ -580,13 +580,8 @@ class Crypt {
 		$meta = substr($catFile, -93);
 		$signaturePosition = strpos($meta, '00sig00');
 
-		// If we ignore the signature check then well...
-		if ($skipSignatureCheck) {
-			return ($signaturePosition !== false);
-		}
-
-		// If we no longer support the legacy format then everything has a signature
-		if (!$this->supportLegacy && $signaturePosition === false) {
+		// If we no longer support the legacy format then everything needs a signature
+		if (!$skipSignatureCheck && !$this->supportLegacy && $signaturePosition === false) {
 			throw new GenericEncryptionException('Missing Signature', $this->l->t('Missing Signature'));
 		}
 
