@@ -278,7 +278,7 @@ class Storage implements IStorage {
 					if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
 
 						try {
-							$clearData = $this->crypto->decrypt(base64_decode($data));
+							$clearData = $this->crypto->decrypt($data);
 						} catch (\Exception $e) {
 							throw new ServerNotAvailableException('Could not decrypt key', 0, $e);
 						}
@@ -296,7 +296,7 @@ class Storage implements IStorage {
 						 */
 						$fallback = false;
 						try {
-							$clearData = $this->crypto->decrypt(base64_decode($data));
+							$clearData = $this->crypto->decrypt($data);
 						} catch (\Exception $e) {
 							$fallback = true;
 						}
@@ -340,7 +340,7 @@ class Storage implements IStorage {
 			$data = $key['key'];
 		} else {
 			// Wrap the data
-			$data = base64_encode($this->crypto->encrypt(json_encode($key)));
+			$data = $this->crypto->encrypt(json_encode($key));
 		}
 
 		$result = $this->view->file_put_contents($path, $data);
