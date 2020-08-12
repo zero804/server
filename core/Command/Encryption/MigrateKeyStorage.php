@@ -60,13 +60,6 @@ class MigrateKeyStorage extends Command {
 	 */
 	private $crypto;
 
-	/**
-	 * @param View $view
-	 * @param IUserManager $userManager
-	 * @param IConfig $config
-	 * @param Util $util
-	 * @param QuestionHelper $questionHelper
-	 */
 	public function __construct(View $view, IUserManager $userManager, IConfig $config, Util $util, ICrypto $crypto) {
 		parent::__construct();
 		$this->rootView = $view;
@@ -118,7 +111,7 @@ class MigrateKeyStorage extends Command {
 			return;
 		}
 
-		$this->traverseKeys($root . '/files_encryption');
+		$this->traverseKeys($root . '/files_encryption', null);
 	}
 
 	private function traverseKeys(string $folder, ?string $uid) {
@@ -126,7 +119,7 @@ class MigrateKeyStorage extends Command {
 
 		foreach ($listing as $node) {
 			if ($node['mimetype'] === 'httpd/unix-directory') {
-				$this->traverseKeys($folder . '/' . $node['name']);
+				//ignore
 			} else {
 				$endsWith = function ($haystack, $needle) {
 					$length = strlen($needle);
@@ -169,7 +162,7 @@ class MigrateKeyStorage extends Command {
 
 		foreach ($listing as $node) {
 			if ($node['mimetype'] === 'httpd/unix-directory') {
-				// ignore
+				$this->traverseFileKeys($folder . '/' . $node['name']);
 			} else {
 				$endsWith = function ($haystack, $needle) {
 					$length = strlen($needle);
@@ -228,7 +221,6 @@ class MigrateKeyStorage extends Command {
 	protected function updateUsersKeys($root, OutputInterface $output) {
 		$progress = new ProgressBar($output);
 		$progress->start();
-
 
 		foreach ($this->userManager->getBackends() as $backend) {
 			$limit = 500;
