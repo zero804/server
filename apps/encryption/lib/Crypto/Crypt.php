@@ -272,7 +272,7 @@ class Crypt {
 		// Workaround for OpenSSL 0.9.8. Fallback to an old cipher that should work.
 		if (OPENSSL_VERSION_NUMBER < 0x1000101f) {
 			if ($cipher === 'AES-256-CTR' || $cipher === 'AES-128-CTR') {
-				$cipher = $this->getLegacyCipher();
+				$cipher = self::LEGACY_CIPHER;
 			}
 		}
 
