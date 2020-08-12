@@ -150,7 +150,7 @@ class MigrateKeyStorage extends Command {
 					}
 
 					$data = [
-						'key' => $content,
+						'key' => base64_encode($content),
 						'uid' => $uid,
 					];
 
@@ -190,8 +190,10 @@ class MigrateKeyStorage extends Command {
 					}
 
 					$data = [
-						'key' => base64_encode($this->crypto->encrypt($content))
+						'key' => base64_encode($content)
 					];
+
+					$enc = base64_encode($this->crypto->encrypt(json_encode($data)));
 
 					$this->rootView->file_put_contents($path, json_encode($data));
 				}

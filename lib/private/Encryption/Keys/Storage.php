@@ -92,7 +92,7 @@ class Storage implements IStorage {
 	 */
 	public function getUserKey($uid, $keyId, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, $uid);
-		return $this->getKeyWithUid($path, $uid);
+		return base64_decode($this->getKeyWithUid($path, $uid));
 	}
 
 	/**
@@ -119,7 +119,7 @@ class Storage implements IStorage {
 	 */
 	public function getSystemUserKey($keyId, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, null);
-		return $this->getKeyWithUid($path, null);
+		return base64_decode($this->getKeyWithUid($path, null));
 	}
 
 	/**
@@ -128,7 +128,7 @@ class Storage implements IStorage {
 	public function setUserKey($uid, $keyId, $key, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, $uid);
 		return $this->setKey($path, [
-			'key' => $key,
+			'key' => base64_encode($key),
 			'uid' => $uid,
 		]);
 	}
@@ -149,7 +149,7 @@ class Storage implements IStorage {
 	public function setSystemUserKey($keyId, $key, $encryptionModuleId) {
 		$path = $this->constructUserKeyPath($encryptionModuleId, $keyId, null);
 		return $this->setKey($path, [
-			'key' => $key,
+			'key' => base64_encode($key),
 			'uid' => null,
 		]);
 	}
@@ -233,7 +233,11 @@ class Storage implements IStorage {
 			throw new ServerNotAvailableException('Key is invalid');
 		}
 
-		if (!isset($data['uid']) || $data['uid'] !== $uid) {
+		if ($data['key'] === '') {
+			return '';
+		}
+
+		if (!array_key_exists('uid', $data) || $data['uid'] !== $uid) {
 			// If the migration is done we error out
 			if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
 				throw new ServerNotAvailableException('Key has been modified');
