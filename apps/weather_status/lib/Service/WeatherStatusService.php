@@ -249,12 +249,6 @@ class WeatherStatusService {
 			$response = $this->client->get($reqUrl, $options);
 			$body = $response->getBody();
 			$headers = $response->getHeaders();
-			//if (isset($headers['Expires']) and count($headers['Expires']) > 0) {
-			//	error_log('EXXXX '.$headers['Expires'].'||||');
-			//	error_log(implode(' !!! ', $headers['Expires']).'|||||');
-			//	error_log((new \Datetime($headers['Expires'][0]))->getTimestamp().'||oo||');
-			//	$expireTs = (new \Datetime($headers['Expires'][0]))->getTimestamp();
-			//}
 			$respCode = $response->getStatusCode();
 
 			if ($respCode >= 400) {
@@ -262,7 +256,15 @@ class WeatherStatusService {
 			} else {
 				$json = json_decode($body, true);
 				if (isset($this->cache)) {
-					$this->cache->set($cacheKey, $json, 60 * 60);
+					// default cache duration is one hour
+					$cacheDuration = 60 * 60;
+					if (isset($headers['Expires']) and count($headers['Expires']) > 0) {
+						// if the Expires response header is set, use it to define cache duration
+						$expireTs = (new \Datetime($headers['Expires'][0]))->getTimestamp();
+						$nowTs = (new \Datetime())->getTimestamp();
+						$cacheDuration = $expireTs - $nowTs;
+					}
+					$this->cache->set($cacheKey, $json, $cacheDuration);
 				}
 				return $json;
 			}
