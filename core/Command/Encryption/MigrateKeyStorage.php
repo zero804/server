@@ -126,7 +126,7 @@ class MigrateKeyStorage extends Command {
 
 		foreach ($listing as $node) {
 			if ($node['mimetype'] === 'httpd/unix-directory') {
-				$this->traverse($folder . '/' . $node['name']);
+				$this->traverseKeys($folder . '/' . $node['name']);
 			} else {
 				$endsWith = function ($haystack, $needle) {
 					$length = strlen($needle);
@@ -140,13 +140,16 @@ class MigrateKeyStorage extends Command {
 				if ($node['name'] === 'fileKey' ||
 					$endsWith($node['name'], '.privateKey') ||
 					$endsWith($node['name'], '.publicKey') ||
-					$endsWith($node['name'], 'shareKey')) {
+					$endsWith($node['name'], '.shareKey')) {
 					$path = $folder . '/' . $node['name'];
 
 					$content = $this->rootView->file_get_contents($path);
-					$data = json_decode($content, true);
-					if (is_array($data) && isset($data['key'])) {
+
+					try {
+						$this->crypto->decrypt($content);
 						continue;
+					} catch (\Exception $e) {
+						// Ignore we now update the data.
 					}
 
 					$data = [
@@ -166,7 +169,7 @@ class MigrateKeyStorage extends Command {
 
 		foreach ($listing as $node) {
 			if ($node['mimetype'] === 'httpd/unix-directory') {
-				$this->traverse($folder . '/' . $node['name']);
+				// ignore
 			} else {
 				$endsWith = function ($haystack, $needle) {
 					$length = strlen($needle);
@@ -180,13 +183,16 @@ class MigrateKeyStorage extends Command {
 				if ($node['name'] === 'fileKey' ||
 					$endsWith($node['name'], '.privateKey') ||
 					$endsWith($node['name'], '.publicKey') ||
-					$endsWith($node['name'], 'shareKey')) {
+					$endsWith($node['name'], '.shareKey')) {
 					$path = $folder . '/' . $node['name'];
 
 					$content = $this->rootView->file_get_contents($path);
-					$data = json_decode($content, true);
-					if (is_array($data) && isset($data['key'])) {
+
+					try {
+						$this->crypto->decrypt($content);
 						continue;
+					} catch (\Exception $e) {
+						// Ignore we now update the data.
 					}
 
 					$data = [
