@@ -276,7 +276,6 @@ class Storage implements IStorage {
 					];
 				} else {
 					if ($this->config->getSystemValueBool('encryption.key_storage_migrated', true)) {
-
 						try {
 							$clearData = $this->crypto->decrypt($data);
 						} catch (\Exception $e) {

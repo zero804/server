@@ -28,7 +28,6 @@ namespace OC\Core\Command\Encryption;
 
 use OC\Encryption\Keys\Storage;
 use OC\Encryption\Util;
-use OC\Files\Filesystem;
 use OC\Files\View;
 use OCP\IConfig;
 use OCP\IUserManager;
