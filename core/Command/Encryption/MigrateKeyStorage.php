@@ -258,27 +258,7 @@ class MigrateKeyStorage extends Command {
 			}
 		}
 	}
-
-	/**
-	 * Make preparations to filesystem for saving a key file
-	 *
-	 * @param string $path relative to data/
-	 */
-	protected function prepareParentFolder($path) {
-		$path = Filesystem::normalizePath($path);
-		// If the file resides within a subdirectory, create it
-		if ($this->rootView->file_exists($path) === false) {
-			$sub_dirs = explode('/', ltrim($path, '/'));
-			$dir = '';
-			foreach ($sub_dirs as $sub_dir) {
-				$dir .= '/' . $sub_dir;
-				if ($this->rootView->file_exists($dir) === false) {
-					$this->rootView->mkdir($dir);
-				}
-			}
-		}
-	}
-
+	
 	/**
 	 * check if target already exists
 	 *
