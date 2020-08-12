@@ -118,10 +118,50 @@ class MigrateKeyStorage extends Command {
 			return;
 		}
 
-		$this->traverse($root . '/files_encryption');
+		$this->traverseKeys($root . '/files_encryption');
 	}
 
-	private function traverse(string $folder) {
+	private function traverseKeys(string $folder, ?string $uid) {
+		$listing = $this->rootView->getDirectoryContent($folder);
+
+		foreach ($listing as $node) {
+			if ($node['mimetype'] === 'httpd/unix-directory') {
+				$this->traverse($folder . '/' . $node['name']);
+			} else {
+				$endsWith = function ($haystack, $needle) {
+					$length = strlen($needle);
+					if ($length === 0) {
+						return true;
+					}
+
+					return (substr($haystack, -$length) === $needle);
+				};
+
+				if ($node['name'] === 'fileKey' ||
+					$endsWith($node['name'], '.privateKey') ||
+					$endsWith($node['name'], '.publicKey') ||
+					$endsWith($node['name'], 'shareKey')) {
+					$path = $folder . '/' . $node['name'];
+
+					$content = $this->rootView->file_get_contents($path);
+					$data = json_decode($content, true);
+					if (is_array($data) && isset($data['key'])) {
+						continue;
+					}
+
+					$data = [
+						'key' => $content,
+						'uid' => $uid,
+					];
+
+					$enc = base64_encode($this->crypto->encrypt(json_encode($data)));
+					$this->rootView->file_put_contents($path, $enc);
+				}
+			}
+		}
+	}
+
+	private function traverseFileKeys(string $folder) {
 		$listing = $this->rootView->getDirectoryContent($folder);
 
 		foreach ($listing as $node) {
@@ -207,9 +247,14 @@ class MigrateKeyStorage extends Command {
 	 */
 	protected function updateUserKeys($user, $root) {
 		if ($this->userManager->userExists($user)) {
-			$source = $root . '/' . $user . '/files_encryption';
+			$source = $root . '/' . $user . '/files_encryption/OC_DEFAULT_MODULE';
 			if ($this->rootView->is_dir($source)) {
-				$this->traverse($source);
+				$this->traverseKeys($source, $user);
+			}
+
+			$source = $root . '/' . $user . '/files_encryption/keys';
+			if ($this->rootView->is_dir($source)) {
+				$this->traverseFileKeys($source);
 			}
 		}
 	}
