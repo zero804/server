@@ -193,8 +193,7 @@ class MigrateKeyStorage extends Command {
 					];
 
 					$enc = $this->crypto->encrypt(json_encode($data));
-
-					$this->rootView->file_put_contents($path, json_encode($data));
+					$this->rootView->file_put_contents($path, $enc);
 				}
 			}
 		}
